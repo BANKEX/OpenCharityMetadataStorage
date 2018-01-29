@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" >
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+  <script src="server.js"></script>
+  <title>OpenCharity</title>
+</head>
+<body>
+  <div id="content">OpenCharity</div>
+  <div class="container">
+    <div class="row">
+      <input type="file" class="form-control" id="fileLoader" >
+    </div>
+    <div class="row">
+      <textarea class="form-control" id="textLoader"></textarea>
+    </div>
+    <div class="row">
+      <button id="sendButton" onClick="doSmthg()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    var blob = new Blob(['{"a": "sdfs","b":"sdfsdfgg"}']);
+    fileLoader.addEventListener('change', fileChange, false);
+    textLoader.addEventListener('change', textChange, false);
+
+    function fileChange(e) {
+      blob = e.target.files[0];
+    }
+    function textChange(e) {
+      blob = new Blob([e.target.value]);
+    }
+
+    function doSmthg() {
+      sendBlobToServer(blob)
+        .then(function(result) {console.log(JSON.parse(result).data)})
+        .catch(function(error) {alert(error)});
+    }
+
+  </script>
+</body>
+</html>

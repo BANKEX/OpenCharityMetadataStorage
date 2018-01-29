@@ -1,0 +1,27 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "globals": {
+    "document": true,
+    "window": true
+  },
+  "extends": ["eslint:recommended", "google"],
+  "rules": {
+    "no-console": 0,
+    "object-curly-spacing": 0,
+    "max-len": 0,
+    "require-jsdoc": 0,
+    "no-invalid-this": 0,
+    "prefer-rest-params": 0,
+    "no-unused-vars": 0,
+    "arrow-parens": 0,
+    "no-trailing-spaces": 0,
+    "linebreak-style": 0
+  }
+}
