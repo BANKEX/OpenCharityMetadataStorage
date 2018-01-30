@@ -2,7 +2,7 @@ import passport from 'koa-passport';
 import pick from 'lodash.pick';
 import jwt from 'jsonwebtoken';
 import AppError from '../../../utils/errors.js';
-import {JWT} from '../../../config.js';
+import {JWT, ADDRESS} from '../../../config.js';
 import { User } from '../models';
 import { UserService } from '../services';
 
@@ -19,7 +19,8 @@ function setToken(ctx, user) {
 
 export default {
   async signup(ctx) {
-    if (ctx.headers['content-type']!='application/json') throw new AppError(400, 10);
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.user) throw new AppError(401, 102);
 
     const userData = pick(ctx.request.body, User.createFields);
@@ -31,7 +32,8 @@ export default {
   },
 
   async login(ctx) {
-    if (ctx.request.header['content-type']!='application/json') throw new AppError(400, 10);
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.user) throw new AppError(401, 102);
 
     const { email, password } = ctx.request.body;
@@ -45,36 +47,62 @@ export default {
 
   async logout(ctx) {
     if (!ctx.user) throw new AppError(401, 101);
+    
     ctx.cookies.set('jwt', '', {httpOnly: true});
     ctx.headers.authorization = '';
     ctx.redirect('/');
   },
 
-  async currentUser(ctx) {
-    if (!ctx.user) throw new AppError(401, 101);
-    const { user: { _id } } = ctx;
-    const user = await UserService.getUserWithPublicFields({ _id });
-    ctx.body = { data: user };
-  },
-  
-  async changeUser(ctx) {
-    if (!ctx.user) throw new AppError(401, 101);
-    if (ctx.headers['content-type']!='application/json') throw new AppError(400, 10);
-    const { user: { _id } } = ctx;
-    const { password, newpassword } = ctx.request.body;
-    const changeData = pick(ctx.request.body, User.changeFields);
-    if (newpassword) {
-      if (!password) throw new AppError(406, 601);
-      if (!ctx.user.comparePasswords(password)) throw new AppError(401, 100);
-      changeData['password'] = newpassword;
-    }
-    await UserService.updateUser(changeData, _id);
-    const updated = await UserService.getUserWithPublicFields({ _id });
-    ctx.body = { data: updated };
+  async forgotPassword(ctx) {
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    if (ctx.user) throw new AppError(401, 102);
+    
+    const { email } = ctx.request.body;
+    if (!email) throw new AppError(406, 601);
+    const user = await User.findOne({ email });
+    if (!user) throw new AppError(406, 104);
+    const tempToken = await UserService.setTempToken(user._id);
+    const tempLink = `${ADDRESS.protocol}://${ADDRESS.ip}:${ADDRESS.port}/api/user/setNewPassword?token=${tempToken}`;
+    // send email to user.email with tempLink
+    ctx.body = { data: tempLink };
   },
 
-  async forgotPassword(ctx) {
-    if (!ctx.user) throw new AppError(401, 101);
-    ctx.body = 'Ok';
+  async setNewPasswordData(ctx) {
+    if (ctx.user) throw new AppError(401, 102);
+    try {
+      jwt.verify(ctx.query.token, JWT.secret);
+      ctx.state.token = ctx.query.token;
+      await ctx.render('newPassword');
+    } catch (e) {
+      if (e.name == 'TokenExpiredError') {
+        throw new AppError(401, 105);
+      } else {
+        throw e;
+      }
+    }
+  },
+  
+  async setNewPassword(ctx) {
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    if (ctx.user) throw new AppError(401, 102);
+    try {
+      const {password} = ctx.request.body;
+      if (!password) throw new AppError(406, 601);
+      let tempToken = ctx.query.token;
+      const {_id} = jwt.verify(tempToken, JWT.secret);
+      const user = await User.findOne({_id, tempToken});
+      if (!user) throw new AppError(406, 104);
+      tempToken = '';
+      await UserService.updateUser({password, tempToken}, {_id});
+      ctx.body = 'Ok';
+    } catch (e) {
+      if (e.name == 'TokenExpiredError') {
+        throw new AppError(401, 105);
+      } else {
+        throw e;
+      }
+    }
   },
 };

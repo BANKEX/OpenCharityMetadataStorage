@@ -1,8 +1,8 @@
 {
   "jwt":{
     "secret": "veryBigSecret",
-    "timeout" : 15000,
-    "exp" : 6048000
+    "exp" : 604800,
+    "temporaryTokenExp" : 1200
   },
   "fileSettings": {
     "uploadLimitSize": 104857600,

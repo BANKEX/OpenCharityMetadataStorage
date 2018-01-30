@@ -1,11 +1,14 @@
 {
   "env" : "development",
-  "ip": "192.168.100.3",
-  "port": 80,
+  "address" : {
+    "protocol": "http",
+    "ip": "192.168.100.3",
+    "port": 80
+  },
   "dirs": {
     "main": "C:/NodeJS/OpenCharity/",
     "public": "public/",
     "storage": "storage/"
   },
-  "mongoURI": "mongodb://summary:qwe123POI@ds033956.mlab.com:33956/summary"
+  "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test"
 }

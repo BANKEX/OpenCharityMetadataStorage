@@ -10,8 +10,8 @@ rp.defaults({
   encoding: 'utf-8',
 });
 
-const mainURL = 'http://' + conDev.ip + ':' + conDev.port;
-const DIR = conDev.dir;
+const mainURL = conDev.address.protocol+'://' + conDev.address.ip + ':' + conDev.address.port;
+const DIRS = conDev.dirs;
 
 describe('--------Common tests-----------', ()=> {
   it('Сервер отвечает на запросы', (done)=> {
@@ -25,7 +25,7 @@ describe('--------Common tests-----------', ()=> {
   it('Корректно отдает index.ejs', (done)=> {
     request(mainURL, (err, resp, body) => {
       if (err) return done(err);
-      const file = fs.readFileSync(DIR + 'public/index.ejs', {encoding: 'utf-8'});
+      const file = fs.readFileSync(DIRS.main + DIRS.public + '/index.ejs', {encoding: 'utf-8'});
       assert.equal(body, file);
       done();
     });
@@ -34,8 +34,7 @@ describe('--------Common tests-----------', ()=> {
   it('HTML Ошибки при запросе /hello', (done)=> {
     request(mainURL+'/hello', (err, resp, body) => {
       if (err) return done(err);
-      const index = body.indexOf('OpenCharity - Ошибка 404');
-      assert.equal(index, 229);
+      assert.equal(resp.statusCode, 404);
       done();
     });
   });

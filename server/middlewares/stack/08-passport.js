@@ -31,7 +31,7 @@ export default (app) => {
   // ---jwt---
   passport.use(new passJwt.Strategy({
       secretOrKey: JWT.secret,
-      timeout: JWT.timeout,
+      timeout: JWT.exp,
       jwtFromRequest: passJwt.ExtractJwt.fromExtractors([authExt, cookieExt, bodyExt, queryExt]),
     },
     async function(payload, done) {

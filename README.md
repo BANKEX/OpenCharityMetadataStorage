@@ -6,15 +6,18 @@
 3. настроить файл config/development.json
 
     {
-      "env" : "development",
-      "ip": MY_IP_ADRESS,
-      "port": MY_PORT,
-      "dirs": {
-        "main": MY_MAIN_DIR,
-        "public": "public/",
-        "storage": "storage/"
-      },
-      "mongoURI": "mongodb://summary:qwe123POI@ds033956.mlab.com:33956/summary"
+          "env" : "development",
+          "address" : {
+                "protocol": "http",
+                "ip": "192.168.100.3",
+                "port": 80
+          },
+          "dirs": {
+                "main": "C:/NodeJS/OpenCharity/",
+                "public": "public/",
+                "storage": "storage/"
+          },
+          "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test"
     }
 
 4. npm run dev
@@ -79,7 +82,7 @@
 ### POST /api/user/signup
 Регистрация пользователя на сервере.<br/>
 Вернет ошибку если пользователь уже авторизован.<br/>
-Принимает content-type application/json.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
 В JSON должны находиться обзательные поля для создания пользователя.<br/>
 В данный момент это ['email', 'firstName', 'lastName', 'password']<br/>
 Возвращает JSON-объект {data: user}
@@ -87,7 +90,7 @@
 ### POST /api/user/login
 Авторизация пользователя на сервер.<br/>
 Вернет ошибку если пользователь уже авторизован.<br/>
-Принимает content-type application/json.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
 В JSON должны находиться обзательные поля для логина - ['email', 'password'].<br/>
 Возвращает JSON-объект {data: token}<br/>
 Кроме того, записывает token в cookie.jwt.
@@ -95,7 +98,7 @@
 ### GET /api/user/logout
 Логаут пользователя.<br/>
 Вернет ошибку если пользователь не авторизован.<br/>
-Удаляет cookie.jwt и headers.autorization.<br/>
+Удаляет cookie.jwt и headers.authorization.<br/>
 Редирект на '/'.
 
 ### GET /api/user
@@ -107,8 +110,11 @@
             "tags": [
                 "тэг",
                 "#openCharity",
-                "id234623422",
                 "#наПеченькиДетям"
+            ],
+            "trans": [
+                "516568816",
+                "3423434"
             ],
             "_id": "5a6f09b2d2879918385caa68",
             "email": "asd@asd.asd",
@@ -122,15 +128,41 @@
 Авториация распознается по 4 параметрам:
 1. get запрос с параметром &jwt=key
 2. post запрос json, в теле которого есть jwt: key
-3. headers.autorization = key
+3. headers.authorization = key
 4. cookie.jwt = key
-
 
 ### POST /api/user/change
 Вернет ошибку если пользователь не авторизован.<br/>
-Принимает content-type application/json.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
 Из JSON будут взяты в обработку поля (на данный момент это):
-['firstName', 'lastName', 'tags']<br/>
+['firstName', 'lastName', 'tags', 'trans']<br/>
 Если в JSON имеется поле 'newpassword' (новый пароль),
 то требуется также поле 'password' (существующий пароль).<br/>
 Возвращает JSON-объект {data: updatedUser}
+
+### POST /api/user/delete
+Удаление пользователя.<br/>
+Вернет ошибку если пользователь не авторизован.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательное поле password.<br/>
+Удаляет cookie.jwt и headers.authorization.<br/>
+Редирект на '/'.
+
+### POST /api/user/forgot
+Пользователь забыл пароль, ввел в поле свой email, отправил данные.<br/>
+Формирует временный токен (время жизни 20 минут).<br/>
+Вернет ошибку если пользователь авторизован.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательное поле email.<br/>
+Сейчас возвращает JSON {data: link}, позже будет отправлять email пользователю и возвращать Ok.
+
+### GET /api/user/setNewPassword?token=...
+При переходе по ссылке в письме (о забывании пароля) отдает страницу для ввода нового пароля<br/>
+Вернет ошибку если пользователь авторизован или истекло время жизни временного токена.<br/>
+
+### POST /api/user/setNewPassword?token=...
+Изменяет пароль на новый.<br/>
+Вернет ошибку если пользователь авторизован или истекло время жизни временного токена.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательное поле password.<br/>
+Возвращает 'Ok'.

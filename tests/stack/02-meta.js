@@ -11,8 +11,8 @@ rp.defaults({
   encoding: 'utf-8'
 });
 
-const mainURL = 'http://' + conDev.ip + ':' + conDev.port;
-const DIR = conDev.dir;
+const mainURL = conDev.address.protocol+'://' + conDev.address.ip + ':' + conDev.address.port;
+const DIRS = conDev.dirs;
 const fileSettings = conDefault.fileSettings;
 
 function isB58(multiHashB58) {
@@ -24,7 +24,7 @@ function isB58(multiHashB58) {
 
 function getStoragePath(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = DIR + 'storage/';
+  let metadataStoragePath = DIRS.main + DIRS.storage;
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
@@ -37,15 +37,16 @@ function getStoragePath(multiHashB58) {
 
 
 
-describe('--------postData tests (async/await)-----------', ()=> {
+describe('--------/api/meta/postData tests-----------', ()=> {
   it('POST новых метаданных', async()=> {
     let options = {
       method: 'POST',
       uri: mainURL + '/api/meta/postData/',
       body: 'вавыаыа%;№#<>sdf234dsdfjsd83@#$%^&*()+_{}"?">M~`/+ sdfnewоплпЛАУЛАТУЛА'
     };
-    let response = await rp.post(options);
-    assert.equal(response, 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX');
+    const response = await rp.post(options);
+    const data = JSON.parse(response).data;
+    assert.equal(data, 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX');
   });
 
   it('Повторный POST метаданных', async()=> {
@@ -57,12 +58,12 @@ describe('--------postData tests (async/await)-----------', ()=> {
     try {
       await rp.post(options)
     } catch(e) {
-      assert.equal(e.message, '406 - "604 : Уже существует"');
+      assert.equal(e.status, 406);
     }
   });
 });
 
-describe('--------getData tests-----------', () => {
+describe('--------/api/meta/getData tests-----------', () => {
   it('GET запрос на ранее загруженный файл и его удаление', (done)=> {
     const hash = 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX';
     const requestPath = mainURL+'/api/meta/getData/'+hash;
@@ -79,14 +80,13 @@ describe('--------getData tests-----------', () => {
     const requestPath = mainURL+'/api/meta/getData/'+hash;
     request(requestPath, (err, resp, body) => {
       if (err) return done(err);
-      const index = body.indexOf('OpenCharity - Ошибка 404');
-      assert.equal(index, 229);
+      assert.equal(resp.statusCode, 404);
       done();
     })
   });
 });
 
-describe('--------getData tests Multi (async/await)-----------', () => {
+describe('--------/api/meta/getData tests Multi-----------', () => {
   it('POST двух новых файлов и GET мультизапрос', async ()=> {
     const body = [
       'вавыаыа%;№#<>sdf234dsdfjsd83@',
@@ -98,14 +98,14 @@ describe('--------getData tests Multi (async/await)-----------', () => {
       uri: mainURL + '/api/meta/postData/',
       body: body[0]
     };
-    let response1 = await rp.post(options1);
+    let response1 = JSON.parse(await rp.post(options1)).data;
 
     let options2 = {
       method: 'POST',
       uri: mainURL + '/api/meta/postData/',
       body: body[1]
     };
-    let response2 = await rp.post(options2);
+    let response2 = JSON.parse(await rp.post(options2)).data;
 
     let optionsMain = {
       method: 'GET',

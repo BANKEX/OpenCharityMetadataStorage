@@ -1,10 +1,10 @@
 import app from './app.js';
-import {IP, PORT} from './config.js';
+import { ADDRESS } from './config.js';
 
 const server = (process.env.NODE_ENV === 'test')
   ? app.callback()
-  : app.listen(PORT, IP, (err) => {
-      console.log((err) ? err : `Server running on ${IP}:${PORT}`);
+  : app.listen(ADDRESS.port, ADDRESS.ip, (err) => {
+      console.log((err) ? err : `Server running on ${ADDRESS.ip}:${ADDRESS.port}`);
     });
 
 app.on('error', (err) => {

@@ -36,12 +36,20 @@ const UserSchema = new Schema({
     type: Array,
     default: [],
   },
+  trans: {
+    type: Array,
+    default: [],
+  },
+  tempToken: {
+    type: String,
+    default: '',
+  },
 }, {
   timestamps: true,
 });
 
 UserSchema.statics.createFields = ['email', 'firstName', 'lastName', 'password'];
-UserSchema.statics.changeFields = ['firstName', 'lastName', 'tags'];
+UserSchema.statics.changeFields = ['firstName', 'lastName', 'tags', 'trans'];
 
 UserSchema.pre('save', function(next) {
   if (this.isModified('password')) {
