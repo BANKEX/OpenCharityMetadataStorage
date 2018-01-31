@@ -1,7 +1,7 @@
 import passport from 'koa-passport';
 import passLocal from 'passport-local';
 import passJwt from 'passport-jwt';
-import {JWT} from '../../config.js';
+import {JWT} from 'configuration';
 import { User } from '../../modules/user/models';
 
 export default (app) => {

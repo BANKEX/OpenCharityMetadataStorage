@@ -1,5 +1,5 @@
 import IO from 'koa-socket';
-import socketsApp from '../../sockets';
+import socketsApp from 'sockets';
 
 export default (app) => {
   const io = new IO();

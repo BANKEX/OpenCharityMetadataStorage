@@ -4,23 +4,22 @@
 1. склонировать репозиторий
 2. npm install
 3. настроить файл config/development.json
+4. npm run dev
 
     {
           "env" : "development",
           "address" : {
                 "protocol": "http",
-                "ip": "192.168.100.3",
-                "port": 80
+                "ip": MY_IP_ADDRESS,
+                "port": MY_PORT
           },
           "dirs": {
-                "main": "C:/NodeJS/OpenCharity/",
+                "main": MY_MAIN_DIR,
                 "public": "public/",
                 "storage": "storage/"
           },
           "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test"
     }
-
-4. npm run dev
 
 ## Работа с метаданными
 

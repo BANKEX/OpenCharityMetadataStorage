@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {DIRS, fileSettings} from '../../../config.js';
+import {DIRS, fileSettings} from 'configuration';
 const STORAGE = DIRS.main + DIRS.storage;
 
 function isB58(multiHashB58) {

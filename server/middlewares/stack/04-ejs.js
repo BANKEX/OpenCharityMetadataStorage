@@ -1,5 +1,5 @@
 import render from 'koa-ejs';
-import {DIRS} from '../../config.js';
+import {DIRS} from 'configuration';
 
 let options = {
   root: DIRS.main + DIRS.public,

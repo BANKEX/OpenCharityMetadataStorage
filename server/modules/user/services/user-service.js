@@ -1,6 +1,6 @@
 import { User } from '../models';
-import AppError from '../../../utils/errors.js';
-import {JWT} from '../../../config.js';
+import AppError from 'AppErrors';
+import {JWT} from 'configuration';
 import jwt from 'jsonwebtoken';
 
 export default {

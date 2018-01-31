@@ -1,5 +1,5 @@
-import {DIRS, fileSettings} from '../../../config.js';
-import AppError from '../../../utils/errors.js';
+import {DIRS, fileSettings} from 'configuration';
+import AppError from 'AppErrors';
 import {readFiles, writeFile} from '../services/fileService';
 
 export default {

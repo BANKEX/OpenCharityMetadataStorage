@@ -1,5 +1,5 @@
-import app from './app.js';
-import { ADDRESS } from './config.js';
+import app from 'app';
+import { ADDRESS } from 'configuration';
 
 const server = (process.env.NODE_ENV === 'test')
   ? app.callback()

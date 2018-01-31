@@ -1,8 +1,8 @@
 import passport from 'koa-passport';
 import pick from 'lodash.pick';
 import jwt from 'jsonwebtoken';
-import AppError from '../../../utils/errors.js';
-import {JWT, ADDRESS} from '../../../config.js';
+import AppError from 'AppErrors.js';
+import {JWT, ADDRESS} from 'configuration';
 import { User } from '../models';
 import { UserService } from '../services';
 
@@ -13,7 +13,7 @@ function setToken(ctx, user) {
   };
   const token = jwt.sign(payload, JWT.secret);
   ctx.cookies.set('jwt', token, {httpOnly: true});
-  console.log(`${new Date().toLocaleString()} ${user.lastName} ${user.firstName} (${user.email}) signIn success!`);
+  // console.log(`${new Date().toLocaleString()} ${user.lastName} ${user.firstName} (${user.email}) signIn success!`);
   return token;
 }
 

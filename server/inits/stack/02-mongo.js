@@ -1,6 +1,6 @@
-import { MONGO_URI } from '../../config.js';
+import { MONGO_URI } from 'configuration';
 import mongooseConnector from '../../services/mongoose-connector.js';
-import server from '../../server.js';
+import server from 'server';
 
 export default async () => {
   try {

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {DIRS} from '../../config.js';
+import { DIRS } from 'configuration';
 
 export default () => {
   const storageDIR = DIRS.main + DIRS.storage;
