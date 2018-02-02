@@ -4,22 +4,25 @@
 1. склонировать репозиторий
 2. npm install
 3. настроить файл config/development.json
+        {
+              "env" : "development",
+              "address" : {
+                    "protocol": "http",
+                    "ip": MY_IP_ADDRESS,
+                    "port": MY_PORT
+              },
+              "dirs": {
+                    "main": MY_MAIN_DIR,
+                    "public": "public/",
+                    "storage": "storage/"
+              },
+              "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test",
+                "dapp": {
+                  "provider" : "http://52.166.13.111:8535",
+                  "token": "0x9Dee536694e1f0Adc640972E61826732666345b3"
+                }
+        }
 4. npm run dev
-
-    {
-          "env" : "development",
-          "address" : {
-                "protocol": "http",
-                "ip": MY_IP_ADDRESS,
-                "port": MY_PORT
-          },
-          "dirs": {
-                "main": MY_MAIN_DIR,
-                "public": "public/",
-                "storage": "storage/"
-          },
-          "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test"
-    }
 
 ## Работа с метаданными
 
@@ -165,3 +168,26 @@
 Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
 Обязательное поле password.<br/>
 Возвращает 'Ok'.
+
+## Работа с DAPP
+
+### GET /api/dapp/getOrganization
+Вернет JSON единственной организации {data: organization}
+
+### GET /api/dapp/getCharityEvents
+Вернет JSON всех CharityEvents {data: [{charityEventObject}]}<br/>
+    charityEventObject: {
+        name, payed, target, raised
+    }
+
+### GET /api/dapp/getIncomingDonations
+Вернет JSON всех IncomingDonations {data: [{incomingDonationsObject}]}<br/>
+    incomingDonationsObject: {
+        realWorldIdentifier, amount, note
+    }
+
+### GET /api/dapp/getCharityEvent/:hash
+Вернет JSON данного CharityEvent по hash {data: {charityEventObject}}
+
+### GET /api/dapp/getIncomingDonation/:hash
+Вернет JSON данного IncomingDonation по hash {data: {incomingDonationsObject}}

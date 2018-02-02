@@ -42,7 +42,9 @@
     "nodemon": "^1.14.11",
     "passport-jwt": "^3.0.1",
     "passport-local": "^1.0.0",
-    "uuid": "^3.2.1"
+    "scrypt": "^6.0.3",
+    "uuid": "^3.2.1",
+    "web3": "^1.0.0-beta.29"
   },
   "devDependencies": {
     "assert": "^1.4.1",

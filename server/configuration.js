@@ -5,6 +5,7 @@ const JWT = config.get('jwt');
 const DIRS = config.get('dirs');
 const MONGO_URI = config.get('mongoURI');
 const fileSettings = config.get('fileSettings');
+const DAPP = config.get('dapp');
 
 export {
   ADDRESS,
@@ -12,4 +13,5 @@ export {
   DIRS,
   fileSettings,
   MONGO_URI,
+  DAPP,
 };

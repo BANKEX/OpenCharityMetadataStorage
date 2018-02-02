@@ -1,1 +1,1 @@
-nodemon --exec "npm run lint && npm run startDev"
+nodemon --exec "npm run startDev"
