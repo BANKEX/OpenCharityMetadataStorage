@@ -5,16 +5,17 @@ import AppError from 'AppErrors';
 const web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider(DAPP.provider));
 const organizations = ['0xf959e72cbfd729888adeee819563e1122545f46b'];
-const abi = (type) => (require('../abi/'+type).abi);
+const abi = (type) => (require(DIRS.abi+type).abi);
 const TOKEN = new web3.eth.Contract(abi('OpenCharityToken.json'), DAPP.token);
 const ORG = new web3.eth.Contract(abi('Organization.json'), organizations[0]);
 
 export default {
   async getOrganization(ctx) { //надо будет переделывать
+    const address = organizations[0];
     const name = await ORG.methods.name().call();
     const charityEventCount = await ORG.methods.charityEventCount().call();
     const incomingDonationCount = await ORG.methods.incomingDonationCount().call();
-    ctx.body = { data: { name, charityEventCount, incomingDonationCount } };
+    ctx.body = { data: { name, charityEventCount, incomingDonationCount, address } };
   },
 
   async getCharityEvents(ctx) {
@@ -31,7 +32,7 @@ export default {
       const payed = await contract.methods.payed().call();
       const target = await contract.methods.target().call();
       const raised = await TOKEN.methods.balanceOf(address).call();
-      return { name, payed, target, raised };
+      return { name, payed, target, raised, address };
     }));
     ctx.body = { data };
   },
@@ -49,7 +50,7 @@ export default {
       const realWorldIdentifier = await contract.methods.realWorldIdentifier().call();
       const note = await contract.methods.note().call();
       const amount = await TOKEN.methods.balanceOf(address).call();
-      return { realWorldIdentifier, amount, note };
+      return { realWorldIdentifier, amount, note, address };
     }));
     ctx.body = { data };
   },
@@ -60,7 +61,7 @@ export default {
     const payed = await contract.methods.payed().call();
     const target = await contract.methods.target().call();
     const raised = await TOKEN.methods.balanceOf(address).call();
-    ctx.body = { data: { name, payed, target, raised } };
+    ctx.body = { data: { name, payed, target, raised, address } };
   },
   async getIncomingDonation(ctx) {
     const address = ctx.params.hash;
@@ -68,6 +69,6 @@ export default {
     const realWorldIdentifier = await contract.methods.realWorldIdentifier().call();
     const note = await contract.methods.note().call();
     const amount = await TOKEN.methods.balanceOf(address).call();
-    ctx.body = { data: { realWorldIdentifier, amount, note } };
+    ctx.body = { data: { realWorldIdentifier, amount, note, address } };
   },
 };

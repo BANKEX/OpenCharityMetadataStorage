@@ -10,7 +10,7 @@
     "dev": "startDev.bat",
     "lint": "eslint server",
     "startDev": "cross-env NODE_ENV=development NODE_PATH=./server:./server/utils babel-node server/server.js",
-    "test": "mocha tests/index-test.js"
+    "test": "mocha --timeout 10000 tests/index-test.js"
   },
   "nodemonConfig": {
     "watch": [

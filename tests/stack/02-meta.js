@@ -24,7 +24,7 @@ function isB58(multiHashB58) {
 
 function getStoragePath(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = DIRS.main + DIRS.storage;
+  let metadataStoragePath = DIRS.storage;
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);

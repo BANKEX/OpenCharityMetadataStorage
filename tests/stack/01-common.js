@@ -25,7 +25,7 @@ describe('--------Common tests-----------', ()=> {
   it('Корректно отдает index.ejs', (done)=> {
     request(mainURL, (err, resp, body) => {
       if (err) return done(err);
-      const file = fs.readFileSync(DIRS.main + DIRS.public + '/index.ejs', {encoding: 'utf-8'});
+      const file = fs.readFileSync(DIRS.public + '/index.ejs', {encoding: 'utf-8'});
       assert.equal(body, file);
       done();
     });

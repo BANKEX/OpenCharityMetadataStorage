@@ -7,8 +7,9 @@
   },
   "dirs": {
     "main": "C:/NodeJS/OpenCharity/",
-    "public": "public/",
-    "storage": "storage/"
+    "public": "C:/NodeJS/OpenCharity/public/",
+    "storage": "C:/NodeJS/OpenCharity/storage/",
+    "abi": "C:/NodeJS/OpenCharity/abi/"
   },
   "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test",
   "dapp": {

@@ -4,25 +4,32 @@
 1. склонировать репозиторий
 2. npm install
 3. настроить файл config/development.json
-        {
-              "env" : "development",
-              "address" : {
-                    "protocol": "http",
-                    "ip": MY_IP_ADDRESS,
-                    "port": MY_PORT
-              },
-              "dirs": {
-                    "main": MY_MAIN_DIR,
-                    "public": "public/",
-                    "storage": "storage/"
-              },
-              "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test",
-                "dapp": {
-                  "provider" : "http://52.166.13.111:8535",
-                  "token": "0x9Dee536694e1f0Adc640972E61826732666345b3"
-                }
+```
+{
+      "env" : "development",
+      "address" : {
+            "protocol": "http",
+            "ip": MY_IP_ADDRESS,
+            "port": MY_PORT
+      },
+      "dirs": {
+            "main": MY_MAIN_DIR,
+            "public": "public/",
+            "storage": "storage/"
+      },
+      "mongoURI": "mongodb://user:password@ds119268.mlab.com:19268/opch-test",
+        "dapp": {
+          "provider" : "http://52.166.13.111:8535",
+          "token": "0x9Dee536694e1f0Adc640972E61826732666345b3"
         }
+}
+```
 4. npm run dev
+
+## Тестирование
+1. установить mocha глобально: npm i mocha -g
+2. Запустить сервер в dev-окружении: npm run dev
+3. Запустить тесты: npm run test
 
 ## Работа с метаданными
 
@@ -54,29 +61,29 @@
 ### POST /api/meta/postData
 Отправка метаданных на сервер.<br/>
 Фронтэнд функция sendBlobToServer принимает blob и отправляет на сервер данные через поток.
-
-    const sendBlobToServer = (blob) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        const xhr = new XMLHttpRequest();
-        xhr.open('post', '/api/meta/postData');
-        xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
-        reader.readAsArrayBuffer(blob);
-        reader.onload = function (event) {
-          xhr.send(event.target.result);
-          xhr.onload = function (event) {
-            switch (event.target.status) {
-              case 200:
-                resolve(event.target.responseText);
-                break;
-              default:
-                reject(event.target.responseText);
-            }
-          };
+```
+const sendBlobToServer = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    const xhr = new XMLHttpRequest();
+    xhr.open('post', '/api/meta/postData');
+    xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
+    reader.readAsArrayBuffer(blob);
+    reader.onload = function (event) {
+      xhr.send(event.target.result);
+      xhr.onload = function (event) {
+        switch (event.target.status) {
+          case 200:
+            resolve(event.target.responseText);
+            break;
+          default:
+            reject(event.target.responseText);
         }
-      });
-    };
-
+      };
+    }
+  });
+};
+```
 При успешном сохранении метаинформации возвращает JSON-объект {data: hash}
 
 ## Работа с пользователями
@@ -106,26 +113,26 @@
 ### GET /api/user
 Вернет ошибку если пользователь не авторизован.<br/>
 Возвращает JSON-объект {data: user}<br/>
-
-    {
-        "data": {
-            "tags": [
-                "тэг",
-                "#openCharity",
-                "#наПеченькиДетям"
-            ],
-            "trans": [
-                "516568816",
-                "3423434"
-            ],
-            "_id": "5a6f09b2d2879918385caa68",
-            "email": "asd@asd.asd",
-            "firstName": "Пётр",
-            "lastName": "Иванов",
-            "hash": "d347487c-cb2f-47f1-a7a5-964876e70861"
-        }
+```
+{
+    "data": {
+        "tags": [
+            "тэг",
+            "#openCharity",
+            "#наПеченькиДетям"
+        ],
+        "trans": [
+            "516568816",
+            "3423434"
+        ],
+        "_id": "5a6f09b2d2879918385caa68",
+        "email": "asd@asd.asd",
+        "firstName": "Пётр",
+        "lastName": "Иванов",
+        "hash": "d347487c-cb2f-47f1-a7a5-964876e70861"
     }
-
+}
+```
 ### Распознавание авторизации пользователя
 Авториация распознается по 4 параметрам:
 1. get запрос с параметром &jwt=key
@@ -175,17 +182,19 @@
 Вернет JSON единственной организации {data: organization}
 
 ### GET /api/dapp/getCharityEvents
-Вернет JSON всех CharityEvents {data: [{charityEventObject}]}<br/>
-    charityEventObject: {
-        name, payed, target, raised
-    }
-
+Вернет JSON всех CharityEvents {data: [{charityEventObject}]}
+```
+charityEventObject: {
+    name, payed, target, raised
+}
+```
 ### GET /api/dapp/getIncomingDonations
-Вернет JSON всех IncomingDonations {data: [{incomingDonationsObject}]}<br/>
-    incomingDonationsObject: {
-        realWorldIdentifier, amount, note
-    }
-
+Вернет JSON всех IncomingDonations {data: [{incomingDonationsObject}]}
+```
+incomingDonationsObject: {
+    realWorldIdentifier, amount, note
+}
+```
 ### GET /api/dapp/getCharityEvent/:hash
 Вернет JSON данного CharityEvent по hash {data: {charityEventObject}}
 

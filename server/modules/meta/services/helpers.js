@@ -1,6 +1,5 @@
 import fs from 'fs';
 import {DIRS, fileSettings} from 'configuration';
-const STORAGE = DIRS.main + DIRS.storage;
 
 function isB58(multiHashB58) {
   if (typeof multiHashB58 !== 'string') return false;
@@ -11,7 +10,7 @@ function isB58(multiHashB58) {
 
 function getStoragePath(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = STORAGE;
+  let metadataStoragePath = DIRS.storage;
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
@@ -23,8 +22,8 @@ function getStoragePath(multiHashB58) {
 }
 
 function makeStorageDirs(path) {
-  if (path.indexOf(STORAGE)!=0) return false;
-  const metadataPathArray = path.replace(STORAGE, '').split('/');
+  if (path.indexOf(DIRS.storage)!=0) return false;
+  const metadataPathArray = path.replace(DIRS.storage, '').split('/');
   if (!isB58(metadataPathArray.join(''))) return false;
   let noFail = true;
   metadataPathArray.forEach((elem, index) => {
@@ -33,7 +32,7 @@ function makeStorageDirs(path) {
     }
   });
   if (noFail) {
-    let makePath = STORAGE;
+    let makePath = DIRS.storage;
     metadataPathArray.forEach((elem, index) => {
       if (index != metadataPathArray.length-1) {
         makePath += elem+'/';
