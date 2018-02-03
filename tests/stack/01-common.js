@@ -2,7 +2,11 @@ const assert = require('assert');
 const request = require('request');
 const rp = require('request-promise');
 const fs = require('fs');
-const conDev = require('../../config/development.json');
+const config = require('config');
+
+const ADDRESS = config.get('address');
+const DIRS = config.get('dirs');
+const fileSettings = config.get('fileSettings');
 
 rp.defaults({
   simple: false,
@@ -10,8 +14,7 @@ rp.defaults({
   encoding: 'utf-8',
 });
 
-const mainURL = conDev.address.protocol+'://' + conDev.address.ip + ':' + conDev.address.port;
-const DIRS = conDev.dirs;
+const mainURL = ADDRESS.protocol+'://' + ADDRESS.ip + ':' + ADDRESS.port;
 
 describe('--------Common tests-----------', ()=> {
   it('Сервер отвечает на запросы', (done)=> {

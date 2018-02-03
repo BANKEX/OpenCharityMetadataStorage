@@ -1,7 +1,5 @@
 /node_modules/
 /.idea/
-/ssh/
-/_fixture/
 /storage/
-/_trash/
 yarn.lock
+/build/

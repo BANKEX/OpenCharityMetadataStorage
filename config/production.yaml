@@ -1,0 +1,9 @@
+env: production
+address:
+  protocol: http
+  ip: '192.168.100.3'
+  port: 80
+dirs:
+  main: 'C:/NodeJS/OpenCharity'
+  public: 'C:/NodeJS/OpenCharity/public/'
+  storage: 'C:/NodeJS/OpenCharity/storage/'

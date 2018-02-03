@@ -1,0 +1,9 @@
+env: development
+address:
+  protocol: http
+  ip: 'localhost'
+  port: 8080
+dirs:
+  main: 'C:/NodeJS/OpenCharity'
+  public: 'C:/NodeJS/OpenCharity/public/'
+  storage: 'C:/NodeJS/OpenCharity/storage/'

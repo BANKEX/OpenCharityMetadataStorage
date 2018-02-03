@@ -1,0 +1,6 @@
+fileSettings:
+  uploadLimitSize: 104857600
+  dirSplit:
+  - 5
+  - 5
+  - 6
