@@ -1,4 +1,4 @@
-# OpenCharity Server
+# OpenCharityMetadata
 
 ## Установка
 1. склонировать репозиторий
