@@ -2,9 +2,9 @@ import multihash from 'multihashes';
 import crypto from 'crypto';
 import FormData from 'form-data';
 import fs from 'fs';
-import {fileSettings} from 'configuration.js';
-import AppError from 'AppErrors';
-import {isB58, getStoragePath, checkFile, makeStorageDirs} from './helpers.js';
+import { fileSettings } from 'configuration';
+import AppError from '../../../utils/AppErrors.js';
+import { isB58, getStoragePath, checkFile, makeStorageDirs } from './helpers.js';
 
 
 function writeFile(stream, tempPathFile) {

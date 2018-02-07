@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {DIRS, fileSettings} from 'configuration';
+import { DIRS, fileSettings } from 'configuration';
 
 function isB58(multiHashB58) {
   if (typeof multiHashB58 !== 'string') return false;

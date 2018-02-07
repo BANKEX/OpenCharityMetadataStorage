@@ -1,6 +1,6 @@
-import {DIRS, fileSettings} from 'configuration';
-import AppError from 'AppErrors';
-import {readFiles, writeFile} from '../services/fileService';
+import { DIRS, fileSettings } from 'configuration';
+import AppError from '../../../utils/AppErrors.js';
+import { readFiles, writeFile } from '../services/fileService';
 
 export default {
   async getData(ctx) {

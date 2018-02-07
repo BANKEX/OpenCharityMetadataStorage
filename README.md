@@ -3,7 +3,7 @@
 ## Установка
 1. склонировать репозиторий
 2. npm install
-3. настроить файлы config: development.yaml и production.yaml
+3. настроить файлы config: development.yaml, staging.yaml и production.yaml
 ```
     env: development
     address:
@@ -16,19 +16,16 @@
       storage: 'C:/NodeJS/OpenCharity/storage/'
 ```
 4. Для запуска в development-окружении: npm run development
-5. Для запуска в production-окружении:
-    * отредактировать package.json -> scripts -> clean под конктреную ОС
+5. Для запуска в staging или production -окружениях:
     * создать пустую папку build в корне проекта
-    * npm run production
+    * npm run build
+    * npm run staging или npm run production
 
 ## Тестирование
 1. Установить mocha глобально: npm i mocha -g
-2. Тестирование в development-окружении:
-    * запустить сервер в development-окружении: npm run development
-    * npm run testDev
-3. Тестирование в production-окружении:
-    * запустить сервер в production-окружении: npm run production
-    * npm run testProd
+2. Тестирование:
+    * запустить сервер в требуемом окружении (development | staging | production)
+    * запустить тестирование npm run testDev | testStage | testProd
 
 ## Работа с метаданными
 
