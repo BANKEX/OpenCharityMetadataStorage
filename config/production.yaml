@@ -1,7 +1,7 @@
 env: production
 address:
   internal: 'http://127.0.0.1:8080'
-  external: 'https://donatorscab.staging.bankex.team'
+  external: 'https://meta.staging.bankex.team'
 dirs:
   main: '/oc_donators_cab/'
   public: '/oc_donators_cab/public/'
