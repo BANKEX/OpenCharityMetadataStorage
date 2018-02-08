@@ -3,6 +3,6 @@ address:
   internal: 'http://127.0.0.1:8080'
   external: 'https://meta.staging.bankex.team'
 dirs:
-  main: '/oc_donators_cab/'
-  public: '/oc_donators_cab/public/'
-  abi: '/oc_donators_cab/abi/'
+  main: '/oc_meta/'
+  public: '/oc_meta/public/'
+  storage: '/oc_meta/storage/'
