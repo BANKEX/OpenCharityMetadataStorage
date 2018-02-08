@@ -14,7 +14,7 @@ rp.defaults({
   encoding: 'utf-8'
 });
 
-const mainURL = ADDRESS.protocol+'://' + ADDRESS.ip + ':' + ADDRESS.port;
+const mainURL = ADDRESS.external;
 
 function isB58(multiHashB58) {
   if (typeof multiHashB58 !== 'string') return false;

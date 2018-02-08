@@ -1,9 +1,8 @@
 env: staging
 address:
-  protocol: http
-  ip: '0.0.0.0'
-  port: 80
+  internal: 'http://127.0.0.1:8080'
+  external: 'https://donatorscab.staging.bankex.team'
 dirs:
-  main: '/'
-  public: '/public/'
-  storage: '/storage/'
+  main: '/oc_donators_cab/'
+  public: '/oc_donators_cab/public/'
+  abi: '/oc_donators_cab/abi/'
