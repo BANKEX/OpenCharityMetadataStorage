@@ -1,0 +1,26 @@
+version: '3'
+
+volumes:
+    storage_data:
+
+services:
+  oc_meta:
+    image: ${IMAGE}
+    container_name: oc_meta
+    restart: always
+    expose:
+      - "8080"
+    environment:
+      NODE_ENV: $NODE_ENV
+      NODE_PATH: $NODE_PATH
+      VIRTUAL_HOST: $VIRTUAL_HOST
+      LETSENCRYPT_HOST: $LETSENCRYPT_HOST
+      LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL
+    command: npm run staging
+    volumes:
+      - storage_data:/oc_meta/storage
+
+networks:
+  default:
+    external:
+      name: webproxy
