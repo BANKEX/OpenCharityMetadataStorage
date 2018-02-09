@@ -15,7 +15,6 @@ deploy_stage:
     EMAIL: "om@bankexfoundation.org"
     NODE_ENV: "staging"
     NODE_PATH: "./build"
-    DOCKER_CERT_PATH: "~/.docker"
   before_script:
     - mkdir -p ~/.docker
     - echo "$DOCKER_CA" > ~/.docker/ca.pem
@@ -25,6 +24,7 @@ deploy_stage:
     - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
+    - sleep 120
     - docker-compose -f docker/docker-compose.yml up -d
   environment:
     name: staging
