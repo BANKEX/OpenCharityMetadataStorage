@@ -7,7 +7,7 @@ stages:
 
 deploy_stage:
   stage: deploy-stage
-  image: tmaier/docker-compose
+  image: docker/compose
   variables:
     DOCKER_HOST: "tcp://charity-staging.westeurope.cloudapp.azure.com:2376"
     DOCKER_TLS_VERIFY: "1"
