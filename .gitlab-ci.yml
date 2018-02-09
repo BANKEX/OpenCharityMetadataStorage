@@ -15,6 +15,7 @@ deploy_stage:
     EMAIL: "om@bankexfoundation.org"
     NODE_ENV: "staging"
     NODE_PATH: "./build"
+    DOCKER_CERT_PATH: "~/.docker"
   before_script:
     - mkdir -p ~/.docker
     - echo "$DOCKER_CA" > ~/.docker/ca.pem
