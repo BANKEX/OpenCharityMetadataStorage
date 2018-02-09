@@ -60,8 +60,6 @@ deploy_stage:
     - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
-    - docker-compose -f docker/docker-compose.yml down
-    - docker rmi $IMAGE
     - docker pull $IMAGE
     - docker-compose -f docker/docker-compose.yml up -d
   environment:
