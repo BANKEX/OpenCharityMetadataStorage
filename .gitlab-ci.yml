@@ -2,45 +2,8 @@ variables:
   IMAGE: bankexlabs/$CI_PROJECT_NAME:release
 
 stages:
-  - build-node
-  - release
   - deploy-stage
-  - tests-stage
-  - deploy-prod
-  - tests-prod
 
-build-node:
-  image: node:alpine
-  stage: build-node
-  before_script:
-    - apk add --update git
-    - apk --no-cache add g++ gcc libgcc libstdc++ linux-headers make python
-    - npm install --quiet node-gyp -g
-    - npm install
-    - npm rebuild bcrypt --build-from-source
-  cache:
-    paths:
-      - node_modules/
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - build
-      - node_modules/
-      - config
-      - public
-      - server
-      - package.json
-    expire_in: 1h
-
-release:
-  image: docker:latest
-  stage: release
-  before_script:
-    - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
-  script:
-    - docker build -q -f docker/Dockerfile -t ${IMAGE} .
-    - docker push ${IMAGE}
 
 deploy_stage:
   stage: deploy-stage
@@ -57,77 +20,13 @@ deploy_stage:
     - echo "$DOCKER_CA" > ~/.docker/ca.pem
     - echo "$DOCKER_CERT" > ~/.docker/cert.pem
     - echo "$DOCKER_KEY" > ~/.docker/key.pem
+    - env | grep DOCKER
     - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
-    - docker pull $IMAGE
     - docker-compose -f docker/docker-compose.yml up -d
   environment:
     name: staging
     url: https://meta.staging.bankex.team
   when: manual
   allow_failure: false
-
-tests-stage:
-  image: docker:latest
-  stage: tests-stage
-  variables:
-    DOCKER_HOST: "tcp://charity-staging.westeurope.cloudapp.azure.com:2376"
-    DOCKER_TLS_VERIFY: "1"
-    SERVERNAME: meta.staging.bankex.team
-    NODE_ENV: "staging"
-  before_script:
-    - mkdir -p ~/.docker
-    - echo "$DOCKER_CA" > ~/.docker/ca.pem
-    - echo "$DOCKER_CERT" > ~/.docker/cert.pem
-    - echo "$DOCKER_KEY" > ~/.docker/key.pem
-  script:
-    - docker exec -i -e NODE_ENV=$NODE_ENV oc_meta sh -c "npm i mocha -g && npm run test"
-
-deploy_prod:
-  stage: deploy-prod
-  image: tmaier/docker-compose
-  variables:
-    DOCKER_HOST: "tcp://charity-prod.westeurope.cloudapp.azure.com:2376"
-    DOCKER_TLS_VERIFY: "1"
-    SERVERNAME: meta.bankex.team
-    EMAIL: "om@bankexfoundation.org"
-    NODE_ENV: "production"
-    NODE_PATH: "./build"
-  before_script:
-    - mkdir -p ~/.docker
-    - echo "$DOCKER_CA" > ~/.docker/ca.pem
-    - echo "$DOCKER_CERT" > ~/.docker/cert.pem
-    - echo "$DOCKER_KEY" > ~/.docker/key.pem
-    - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
-    - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
-  script:
-    - docker-compose -f docker/docker-compose-prod.yml down
-    - docker rmi $IMAGE
-    - docker pull $IMAGE
-    - docker-compose -f docker/docker-compose-prod.yml up -d
-  environment:
-    name: production
-    url: https://meta.bankex.team
-  only:
-    - production
-  when: manual
-  allow_failure: false
-
-tests-prod:
-  image: docker:latest
-  stage: tests-prod
-  variables:
-    DOCKER_HOST: "tcp://charity-prod.westeurope.cloudapp.azure.com:2376"
-    DOCKER_TLS_VERIFY: "1"
-    SERVERNAME: meta.bankex.team
-    NODE_ENV: "production"
-  before_script:
-    - mkdir -p ~/.docker
-    - echo "$DOCKER_CA" > ~/.docker/ca.pem
-    - echo "$DOCKER_CERT" > ~/.docker/cert.pem
-    - echo "$DOCKER_KEY" > ~/.docker/key.pem
-  script:
-    - docker exec -i -e NODE_ENV=$NODE_ENV oc_meta sh -c "npm i mocha -g && npm run test"
-  only:
-    - production
