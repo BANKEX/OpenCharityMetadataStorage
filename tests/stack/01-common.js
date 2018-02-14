@@ -27,17 +27,17 @@ describe('--------Common tests-----------', ()=> {
     });
   });
 
-  it('Корректно отдает index.ejs', (done)=> {
-    request(mainURL, (err, resp, body) => {
+  it('Корректно отдает testAPI.ejs', (done)=> {
+    request(mainURL+'/api/testAPI', (err, resp, body) => {
       if (err) return done(err);
-      // const file = fs.readFileSync(DIRS.public + '/index.ejs', {encoding: 'utf-8'});
-      assert.equal(body.indexOf('Welcome to OpenCharityMetadata!')!=-1, true);
+      const file = fs.readFileSync(DIRS.public + '/testAPI.ejs', {encoding: 'utf-8'});
+      assert.equal(body, file);
       done();
     });
   });
 
-  it('HTML Ошибки при запросе /hello', (done)=> {
-    request(mainURL+'/hello', (err, resp, body) => {
+  it('HTML Ошибки при запросе /api/hello', (done)=> {
+    request(mainURL+'/api/hello', (err, resp, body) => {
       if (err) return done(err);
       assert.equal(resp.statusCode, 404);
       done();

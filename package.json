@@ -56,6 +56,7 @@
     "passport-jwt": "^3.0.1",
     "passport-local": "^1.0.0",
     "scrypt": "^6.0.3",
+    "search-index": "^0.15.0",
     "uuid": "^3.2.1",
     "web3": "^1.0.0-beta.29"
   },

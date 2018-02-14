@@ -1,7 +1,7 @@
 env: development
 address:
   internal: 'http://127.0.0.1:8080'
-  external: 'https://meta.staging.bankex.team'
+  external: 'http://127.0.0.1:8080'
 dirs:
   main: 'C:/NodeJS/OpenCharity'
   public: 'C:/NodeJS/OpenCharity/public/'

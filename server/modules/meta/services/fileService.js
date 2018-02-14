@@ -5,63 +5,92 @@ import fs from 'fs';
 import { fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs } from './helpers.js';
+import searchIndex from 'search-index';
+import JSONStream from 'JSONStream';
 
+const SIoption = {
+  indexPath: 'indexData',
+  logLevel: 'error',
+};
+
+let index;
+
+searchIndex(SIoption, (err, newIndex) => {
+  if (!err) {
+    index = newIndex;
+  } else {
+    console.log(err);
+  }
+});
 
 function writeFile(stream, tempPathFile) {
   return new Promise((resolve, reject) => {
     let dataSize = 0;
     let fail = false;
-    let dataHashing;
     if (fs.existsSync(tempPathFile)) fs.unlinkSync(tempPathFile);
-    const file = new fs.WriteStream(tempPathFile, {flags: 'wx'});
+    const file = fs.createWriteStream(tempPathFile, {flags: 'wx'});
+
     stream.pipe(file);
 
     const localError = (code) => {
+      console.error(code);
       file.destroy();
       fail = true;
-      dataHashing = undefined;
       fs.unlinkSync(tempPathFile);
       console.log(tempPathFile + ' - temporary file has been deleted');
       return reject(new AppError(406, code));
     };
 
     stream.on('data', (chunk) => {
-      if (!fail) {
-        dataSize += chunk.length;
-        (!dataHashing)
-          ? dataHashing = chunk
-          : dataHashing += chunk;
-        if (dataSize > fileSettings.uploadLimitSize && !fail) localError(602);
-      }
-    });
-
-    stream.on('close', ()=> {
-      if (!fail) localError(603);
-    });
-
-    file.on('error', (err) => {
-      console.error(err);
-      if (!fail) localError(605);
-    });
-
-    file.on('close', () => {
-      if (!fail) {
-        const dataHashHex = crypto.createHash('sha256').update(dataHashing).digest('hex');
-        const dataHashBuffer = multihash.fromHexString(dataHashHex);
-        const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
-        const multiHashB58 = multihash.toB58String(multiHashBuffer);
-        dataHashing = undefined;
-        const metadataStoragePath = getStoragePath(multiHashB58);
-        if (!makeStorageDirs(metadataStoragePath)) localError(605);
-        if (!fs.existsSync(metadataStoragePath)) {
-          fs.renameSync(tempPathFile, metadataStoragePath);
-          resolve(multiHashB58);
-        } else {
-          fs.unlinkSync(tempPathFile);
-          resolve(multiHashB58);
+        if (!fail) {
+          dataSize += chunk.length;
+          if (dataSize > fileSettings.uploadLimitSize) return localError(602);
         }
-      }
-    });
+      });
+    stream.on('close', ()=> {
+        if (!fail) return localError(603);
+      });
+
+    file
+      .on('error', (err) => {
+        console.error(err);
+        if (!fail) return localError(605);
+      })
+      .on('close', () => {
+        if (!fail) {
+          const tempFile = fs.readFileSync(tempPathFile);
+          const dataHashHex = crypto.createHash('sha256').update(tempFile).digest('hex');
+          const dataHashBuffer = multihash.fromHexString(dataHashHex);
+          const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
+          const multiHashB58 = multihash.toB58String(multiHashBuffer);
+          let isJSON;
+          try {
+            JSON.parse(tempFile);
+            isJSON = true;
+          } catch (e) {
+            isJSON = false;
+          }
+          const metadataStoragePath = getStoragePath(multiHashB58, isJSON);
+          if (!makeStorageDirs(metadataStoragePath, isJSON)) return localError(605);
+          if (!fs.existsSync(metadataStoragePath)) {
+            fs.renameSync(tempPathFile, metadataStoragePath);
+            if (isJSON) {
+              fs.createReadStream(metadataStoragePath)
+                .pipe(index.feed())
+                .on('error', () => {
+                  console.log('error 1');
+                })
+                .on('finish', () => {
+                  console.log('finish 1');
+                });
+            }
+            return resolve(multiHashB58);
+          } else {
+            fs.unlinkSync(tempPathFile);
+            return resolve(multiHashB58);
+          }
+        }
+      });
   });
 }
 
@@ -70,28 +99,32 @@ function readFiles(stream, multiHashRequest) {
     const filePath = checkFile(multiHashRequest[0]);
     if (filePath) {
       return new Promise((resolve, reject) => {
-        stream.writeHead(200, {
-          'Content-Type': 'text/plain;charset=utf-8',
-          'Cache-Control': 'no-cache',
-        });
-        const file = fs.createReadStream(filePath, {encoding: 'utf-8'});
+        let file;
+        if (filePath.indexOf('/json/')!=-1) {
+          console.log('json');
+          stream.writeHead(200, {'Content-Type': 'application/json'});
+          file = fs.createReadStream(filePath, {encoding: 'utf-8'});
+        } else {
+          console.log('binary');
+          stream.writeHead(200, {'X-Content-Type-Options': 'nosniff'});
+          file = fs.createReadStream(filePath);
+        }
 
-        file.on('error', (err)=> {
-          console.error(err);
-          if (err.code == 'ENOENT') {
-            reject(new AppError(406, 606));
-          } else {
-            reject(new AppError(406, 605));
-          }
-        }).pipe(stream);
+        file
+          .on('error', (err)=> {
+            return (err.code == 'ENOENT')
+              ? reject(new AppError(406, 606))
+              : reject(new AppError(406, 605));
+          })
+          .pipe(stream);
 
         stream
           .on('close', () => {
             file.destroy();
-            reject(new AppError(406, 605));
+            return reject(new AppError(406, 605));
           })
           .on('error', () => {
-            reject(new AppError(406, 605));
+            return reject(new AppError(406, 605));
           })
           .on('finish', () => {
             stream.end();
@@ -138,7 +171,21 @@ function readFiles(stream, multiHashRequest) {
   }
 }
 
+const search = (text) => {
+  return new Promise((resolve, reject) => {
+    const arr = [];
+    index.search(text)
+      .on('data', (data) => {
+        arr.push(data);
+      })
+      .on('end', () => {
+        return resolve(arr);
+      });
+  });
+};
+
 export {
   writeFile,
   readFiles,
+  search,
 };

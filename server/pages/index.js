@@ -3,8 +3,12 @@ import Router from 'koa-router';
 const router = new Router();
 
 router
-  .get('/', async (ctx) => {
-    await ctx.render('index');
-  });
+  .get('/api/testAPI', async (ctx) => {
+    await ctx.render('testAPI');
+  })
+  .get('*', async (ctx) => {
+    ctx.body = 'metadata';
+  })
+;
 
 export default router.routes();

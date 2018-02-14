@@ -27,6 +27,10 @@
     * запустить сервер в требуемом окружении (development | staging | production)
     * запустить тестирование npm run testDev | testStage | testProd
 
+## Страница тестирования API
+По адресу /api/testAPI доступен интерфейс тестирования всех функций API.<br/>
+Все фронтэнд-функции для работы с API см. в /public/testAPI.js
+
 ## Работа с метаданными
 
 ### POST /api/meta/getData/:hash[;:hash]

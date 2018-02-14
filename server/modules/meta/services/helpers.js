@@ -8,9 +8,10 @@ function isB58(multiHashB58) {
   return true;
 }
 
-function getStoragePath(multiHashB58) {
+function getStoragePath(multiHashB58, isJSON) {
   if (!isB58(multiHashB58)) return false;
   let metadataStoragePath = DIRS.storage;
+  metadataStoragePath+= (isJSON) ? 'json/' : 'binary/';
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
@@ -21,9 +22,10 @@ function getStoragePath(multiHashB58) {
   return metadataStoragePath;
 }
 
-function makeStorageDirs(path) {
+function makeStorageDirs(path, isJSON) {
   if (path.indexOf(DIRS.storage)!=0) return false;
-  const metadataPathArray = path.replace(DIRS.storage, '').split('/');
+  const storagePath = (isJSON) ? DIRS.storage + 'json/' : DIRS.storage + 'binary/';
+  const metadataPathArray = path.replace(storagePath, '').split('/');
   if (!isB58(metadataPathArray.join(''))) return false;
   let noFail = true;
   metadataPathArray.forEach((elem, index) => {
@@ -32,7 +34,7 @@ function makeStorageDirs(path) {
     }
   });
   if (noFail) {
-    let makePath = DIRS.storage;
+    let makePath = storagePath;
     metadataPathArray.forEach((elem, index) => {
       if (index != metadataPathArray.length-1) {
         makePath += elem+'/';
@@ -45,10 +47,13 @@ function makeStorageDirs(path) {
 
 function checkFile(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
-  const metadataStoragePath = getStoragePath(multiHashB58);
-  return (fs.existsSync(metadataStoragePath))
-    ? metadataStoragePath
-    : false;
+  const metadataStoragePathJSON = getStoragePath(multiHashB58, true);
+  const metadataStoragePathBinary = getStoragePath(multiHashB58, false);
+  return (fs.existsSync(metadataStoragePathJSON))
+    ? metadataStoragePathJSON
+    : (fs.existsSync(metadataStoragePathBinary)) 
+      ? metadataStoragePathBinary
+      : false;
 }
 
 export {
