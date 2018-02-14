@@ -23,9 +23,10 @@ function isB58(multiHashB58) {
   return true;
 }
 
-function getStoragePath(multiHashB58) {
+function getStoragePath(multiHashB58, isJSON) {
   if (!isB58(multiHashB58)) return false;
   let metadataStoragePath = DIRS.storage;
+  metadataStoragePath+= (isJSON) ? 'json/' : 'binary/';
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
@@ -46,8 +47,7 @@ describe('--------/api/meta/postData tests-----------', ()=> {
       body: 'вавыаыа%;№#<>sdf234dsdfjsd83@#$%^&*()+_{}"?">M~`/+ sdfnewоплпЛАУЛАТУЛА'
     };
     const response = await rp.post(options);
-    const data = JSON.parse(response).data;
-    assert.equal(data, 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX');
+    assert.equal(response, 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX');
   });
 
   it('Повторный POST метаданных', async()=> {
@@ -71,7 +71,7 @@ describe('--------/api/meta/getData tests-----------', () => {
     request(requestPath, (err, resp, body) => {
       if (err) return done(err);
       assert.equal(body, 'вавыаыа%;№#<>sdf234dsdfjsd83@#$%^&*()+_{}"?">M~`/+ sdfnewоплпЛАУЛАТУЛА');
-      fs.unlinkSync(getStoragePath(hash));
+      fs.unlinkSync(getStoragePath(hash), false);
       done();
     })
   });
@@ -99,14 +99,14 @@ describe('--------/api/meta/getData tests Multi-----------', () => {
       uri: mainURL + '/api/meta/postData/',
       body: body[0]
     };
-    let response1 = JSON.parse(await rp.post(options1)).data;
+    let response1 = await rp.post(options1);
 
     let options2 = {
       method: 'POST',
       uri: mainURL + '/api/meta/postData/',
       body: body[1]
     };
-    let response2 = JSON.parse(await rp.post(options2)).data;
+    let response2 = await rp.post(options2);
 
     let optionsMain = {
       method: 'GET',
@@ -114,8 +114,8 @@ describe('--------/api/meta/getData tests Multi-----------', () => {
     };
 
     let main = await rp(optionsMain);
-    fs.unlinkSync(getStoragePath(response1));
-    fs.unlinkSync(getStoragePath(response2));
+    fs.unlinkSync(getStoragePath(response1), false);
+    fs.unlinkSync(getStoragePath(response2), false);
     let boo = true;
     boo = boo && main.indexOf(body[0])!=-1;
     boo = boo && main.indexOf(body[1])!=-1;

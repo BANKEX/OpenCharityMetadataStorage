@@ -15,6 +15,6 @@ export default {
   },
   
   async search(ctx) {
-    ctx.body = await search(ctx.params.text);
+    ctx.body = JSON.stringify(await search(ctx.params.text));
   },
 };

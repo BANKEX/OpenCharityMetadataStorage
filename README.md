@@ -7,19 +7,18 @@
 ```
     env: development
     address:
-      protocol: http
-      ip: 'localhost'
-      port: 8080
+      internal: 'http://127.0.0.1:8080'
+      external: 'http://127.0.0.1:8080'
     dirs:
       main: 'C:/NodeJS/OpenCharity'
       public: 'C:/NodeJS/OpenCharity/public/'
       storage: 'C:/NodeJS/OpenCharity/storage/'
 ```
 4. Для запуска в development-окружении: npm run development
-5. Для запуска в staging или production -окружениях:
+5. Для запуска в окружених staging |production:
     * создать пустую папку build в корне проекта
     * npm run build
-    * npm run staging или npm run production
+    * npm run staging | production
 
 ## Тестирование
 1. Установить mocha глобально: npm i mocha -g
@@ -33,11 +32,14 @@
 
 ## Работа с метаданными
 
-### POST /api/meta/getData/:hash[;:hash]
+### GET /api/meta/getData/:hash[;:hash]
 Получение метаданных от сервера по hash.<br/>
-Кодировка utf-8.<br/>
+Имеются два типа данных json и binary:
+    * JSON данные отдаются в кодировке utf-8, application/json.
+    * binary отдаются с заголовком 'X-Content-Type-Options': 'nosniff'.
+Пример обработки полученных данных см. в public/testAPI.js <br/>
 Если один hash (одиночный запрос) - ответ файл по данному запросу.<br/>
-Если несколько hash через ; (мультизапрос) - ответ мультипарт форма вида:
+Если несколько hash через ; (мультизапрос) - ответ мультипарт форма вида (всегда отдается в utf-8, 'Content-Type': 'text/plain;charset=utf-8'):
 
     ----------------------------383220747894497436223661
     Content-Disposition: form-data; name="QmQUAA66JLVghKEZ6n5F2N6UVkvmf4AbAUsuJaeV9SNxha"; filename="6n5F2N6UVkvmf4AbAUsuJaeV9SNxha"
@@ -60,7 +62,9 @@
 
 ### POST /api/meta/postData
 Отправка метаданных на сервер.<br/>
-Фронтэнд функция sendBlobToServer принимает blob и отправляет на сервер данные через поток.
+Фронтэнд функция sendBlobToServer принимает blob и отправляет на сервер данные через поток.<br/>
+Обязательные поля для JSON-данных: title, description.<br/>
+Пример обработки полученных данных см. в public/testAPI.js <br/>
 ```
 const sendBlobToServer = (blob) => {
   return new Promise((resolve, reject) => {
@@ -84,4 +88,46 @@ const sendBlobToServer = (blob) => {
   });
 };
 ```
-При успешном сохранении метаинформации возвращает JSON-объект {data: hash}
+При успешном сохранении метаинформации возвращает hash
+
+### Структура метаданных
+Данные JSON индексируются для поиска и хранятся в следующем виде:
+```
+{
+    "title": "Первый выход в открытый космос",
+    "description": "В открытом космосе всё открыто и можно идти куда захочешь.",
+    "attachment":{
+        "hash":"QmPB8SccRwMxFzFMdC1JVwnWku3uAUHPpvDvCLNrvUACb1",
+        "name":"Стор1.pdf",
+        "type":"application/pdf",
+        "size":3910
+    }
+}
+```
+attachment.hash указывает на binary-данные.
+
+### GET /api/meta/search/:text
+Отдает проиндексированные JSON-данные, реально хранящиеся в storage в виде объекта {hash: data}
+```
+{
+    "QmfJUuV34ZqBBbfQ29uj6Fu9MLzWsCLKkDJLRk6GSWWEVQ":{
+        "title":"Космос близко",
+        "description":"Космос там где ты",
+        "attachment":{
+            "hash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX",
+            "name":"19itg8t.JPG",
+            "type":"image/jpeg",
+            "size":39965}
+    },
+    "QmegGGjJVBi4VcvUPZM6YX5aLSj7yiCZCuyD9w82izEUjX":{
+        "title":"Первый выход в открытый космос",
+        "description":"В открытом космосе всё открыто и можно идти куда захочешь.",
+        "attachment":{
+            "hash":"QmPB8SccRwMxFzFMdC1JVwnWku3uAUHPpvDvCLNrvUACb1",
+            "name":"Стор1.pdf",
+            "type":"application/pdf",
+            "size":3910
+        }
+    }
+}
+```

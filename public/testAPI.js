@@ -27,7 +27,7 @@ const sendBlobToServer = (blob) => {
 const upload = async () => {
   try {
     respUL.innerHTML = '';
-    if (!titleUL.value || !descriptionUL.value) throw new Error('Title & Description are required fields');
+    // if (!titleUL.value || !descriptionUL.value) throw new Error('Title & Description are required fields');
     if (attachBlob) {
       const attachHash = await sendBlobToServer(attachBlob);
       const data = {
@@ -63,14 +63,19 @@ const download = () => {
   xhr.open('get', '/api/meta/getData/'+hashDL.value);
   xhr.send();
   xhr.onload = (event) => {
-    try {
-      const simple = JSON.parse(event.target.responseText);
-      respDL.innerHTML = event.target.responseText;
-      if (simple.attachment) {
-          DLattach.innerHTML = '<a href="/api/meta/getData/'+simple.attachment.hash+'" download="'+simple.attachment.name+'">attach</a>';
+    console.log(event.target);
+    if (event.target.status == 200) {
+      try {
+        const simple = JSON.parse(event.target.responseText);
+        respDL.innerHTML = event.target.responseText;
+        if (simple.attachment) {
+          DLattach.innerHTML = '<a href="/api/meta/getData/' + simple.attachment.hash + '" download="' + simple.attachment.name + '">attach</a>';
+        }
+      } catch (e) {
+        respDL.innerHTML = 'Binary data';
       }
-    } catch (e) {
-      respDL.innerHTML = 'Binary data';
+    } else {
+      respDL.innerHTML = event.target.responseText;
     }
   };
 };

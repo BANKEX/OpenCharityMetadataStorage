@@ -36,10 +36,10 @@ describe('--------Common tests-----------', ()=> {
     });
   });
 
-  it('HTML Ошибки при запросе /api/hello', (done)=> {
+  it('HTML Ошибки при запросе /hello', (done)=> {
     request(mainURL+'/api/hello', (err, resp, body) => {
       if (err) return done(err);
-      assert.equal(resp.statusCode, 404);
+      assert.equal(body, 'metadata');
       done();
     });
   });

@@ -6,24 +6,25 @@ import { fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs } from './helpers.js';
 import searchIndex from 'search-index';
-import JSONStream from 'JSONStream';
 
-const SIoption = {
-  indexPath: 'indexData',
-  logLevel: 'error',
-};
 
 let index;
 
-searchIndex(SIoption, (err, newIndex) => {
-  if (!err) {
-    index = newIndex;
-  } else {
-    console.log(err);
+searchIndex(
+  {
+    indexPath: 'storage/index',
+    logLevel: 'error',
+  }, 
+  (err, newIndex) => {
+    if (!err) {
+      index = newIndex;
+    } else {
+      console.log(err);
+    }
   }
-});
+);
 
-function writeFile(stream, tempPathFile) {
+const writeFile = (stream, tempPathFile) => {
   return new Promise((resolve, reject) => {
     let dataSize = 0;
     let fail = false;
@@ -65,7 +66,8 @@ function writeFile(stream, tempPathFile) {
           const multiHashB58 = multihash.toB58String(multiHashBuffer);
           let isJSON;
           try {
-            JSON.parse(tempFile);
+            const data = JSON.parse(tempFile);
+            if (!data.title || !data.description) return localError(601);
             isJSON = true;
           } catch (e) {
             isJSON = false;
@@ -92,9 +94,9 @@ function writeFile(stream, tempPathFile) {
         }
       });
   });
-}
+};
 
-function readFiles(stream, multiHashRequest) {
+const readFiles = (stream, multiHashRequest) => {
   if (multiHashRequest.length==1) {
     const filePath = checkFile(multiHashRequest[0]);
     if (filePath) {
@@ -169,17 +171,22 @@ function readFiles(stream, multiHashRequest) {
         });
     });
   }
-}
+};
 
 const search = (text) => {
   return new Promise((resolve, reject) => {
-    const arr = [];
+    const searchResult = {};
     index.search(text)
       .on('data', (data) => {
-        arr.push(data);
+        const dataHashHex = crypto.createHash('sha256').update(JSON.stringify(data.document)).digest('hex');
+        const dataHashBuffer = multihash.fromHexString(dataHashHex);
+        const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
+        const multiHashB58 = multihash.toB58String(multiHashBuffer);
+        const metadataStoragePath = getStoragePath(multiHashB58, true);
+        if (fs.existsSync(metadataStoragePath)) searchResult[multiHashB58] = data.document;
       })
       .on('end', () => {
-        return resolve(arr);
+        return resolve(searchResult);
       });
   });
 };
