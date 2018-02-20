@@ -1,6 +1,7 @@
 import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { readFiles, writeFile, search } from '../services/fileService';
+import { readFiles, writeFile } from '../services/fileService';
+import { search, addJSONIndex } from '../services/searchService';
 
 export default {
   async getData(ctx) {
@@ -15,6 +16,13 @@ export default {
   },
   
   async search(ctx) {
-    ctx.body = JSON.stringify(await search(ctx.params.text));
+    ctx.body = await search(ctx.params.text);
+  },
+  
+  async addIndex(ctx) {
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    await addJSONIndex(ctx.request.body);
+    ctx.body = 'Ok';
   },
 };

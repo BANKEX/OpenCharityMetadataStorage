@@ -59,6 +59,7 @@ const upload = async () => {
 
 const download = () => {
   respDL.innerHTML = '';
+  DLattach.innerHTML = '';
   const xhr = new XMLHttpRequest();
   xhr.open('get', '/api/meta/getData/'+hashDL.value);
   xhr.send();
@@ -72,7 +73,11 @@ const download = () => {
           DLattach.innerHTML = '<a href="/api/meta/getData/' + simple.attachment.hash + '" download="' + simple.attachment.name + '">attach</a>';
         }
       } catch (e) {
-        respDL.innerHTML = 'Binary data';
+        if (event.target.responseText.indexOf('----------------------------')==0) {
+          respDL.innerHTML = event.target.responseText;
+        } else {
+          respDL.innerHTML = 'Binary data'; 
+        }
       }
     } else {
       respDL.innerHTML = event.target.responseText;

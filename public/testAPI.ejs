@@ -31,13 +31,15 @@
     </div>
 
     <div class="row">
-      <h3>Download metadata (single hash only)</h3>
+      <h3>Download metadata</h3>
       <div class="col-sm-6">
         <input class="form-control" type="text" placeholder="hash[;hash]" id="hashDL">
         <button class="btn btn-success" onClick="download()">Send</button>
       </div>
-      <div class="col-sm-6 resp" id="respDL"></div>
-      <div class="col-sm-12" id="DLattach"></div>
+      <div class="col-sm-6 resp">
+        <div id="respDL"></div>
+        <div id="DLattach"></div>
+      </div>
     </div>
 
     <div class="row">

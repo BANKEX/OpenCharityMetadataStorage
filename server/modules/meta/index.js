@@ -7,6 +7,7 @@ router
   .get('/getData/:hash', controller.getData)
   .post('/postData', controller.postData)
   .get('/search/:text', controller.search)
+  .post('/addIndex', controller.addIndex)
 ;
 
 export default router.routes();
