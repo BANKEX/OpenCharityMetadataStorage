@@ -23,10 +23,9 @@ function isB58(multiHashB58) {
   return true;
 }
 
-function getStoragePath(multiHashB58, isJSON) {
+function getStoragePath(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = DIRS.storage;
-  metadataStoragePath+= (isJSON) ? 'json/' : 'binary/';
+  let metadataStoragePath = DIRS.storage + 'data/';
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
