@@ -6,7 +6,7 @@ const router = new Router({ prefix: '/meta' });
 router
   .get('/getData/:hash', controller.getData)
   .post('/postData', controller.postData)
-  .get('/search/:text', controller.search)
+  .post('/search', controller.search)
   .post('/addIndex', controller.addIndex)
 ;
 

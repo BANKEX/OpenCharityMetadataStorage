@@ -88,8 +88,16 @@ const download = () => {
 const search = () => {
   respSI.innerHTML = '';
   const xhr = new XMLHttpRequest();
-  xhr.open('get', '/api/meta/search/'+textSI.value);
-  xhr.send();
+  xhr.open('post', '/api/meta/search/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  let searchReq;
+  try {
+    searchReq = JSON.parse(textSI.value.toLowerCase())
+  } catch(e) {
+    searchReq = false;
+  }
+  body = (searchReq) ? searchReq : {text: textSI.value.toLowerCase()};
+  xhr.send(JSON.stringify(body));
   xhr.onload = (event) => {
     respSI.innerHTML = event.target.responseText;
   };

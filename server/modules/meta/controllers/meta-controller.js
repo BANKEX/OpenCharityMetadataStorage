@@ -16,7 +16,10 @@ export default {
   },
   
   async search(ctx) {
-    ctx.body = await search(ctx.params.text);
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    const searchReq = (ctx.request.body.text) ? ctx.request.body.text : ctx.request.body;
+    ctx.body = await search(searchReq);
   },
   
   async addIndex(ctx) {
