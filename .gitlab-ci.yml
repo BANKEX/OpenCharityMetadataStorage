@@ -38,7 +38,7 @@ build-node:
       - public
       - server
       - package.json
-    expire_in: 1h
+    expire_in: 12h
 
 release:
   image: docker:latest
@@ -69,7 +69,7 @@ deploy_stage:
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
     - docker-compose -f docker/docker-compose.yml down
-    - docker rmi $IMAGE
+    - docker rmi $IMAGE || echo "image not exist"
     - docker pull $IMAGE
     - docker-compose -f docker/docker-compose.yml up -d
   environment:
@@ -115,7 +115,7 @@ deploy_prod:
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
     - docker-compose -f docker/docker-compose-prod.yml down
-    - docker rmi $IMAGE
+    - docker rmi $IMAGE || echo "image not exist"
     - docker pull $IMAGE
     - docker-compose -f docker/docker-compose-prod.yml up -d
   environment:
