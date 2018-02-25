@@ -2,6 +2,7 @@ variables:
   IMAGE: bankexlabs/$CI_PROJECT_NAME:release
 
 stages:
+  - setup
   - build-node
   - release
   - deploy-stage
@@ -9,19 +10,24 @@ stages:
   - deploy-prod
   - tests-prod
 
-build-node:
+cache:
+  paths:
+    - node_modules/
+    
+setup:
   image: node:alpine
-  stage: build-node
-  before_script:
+  stage: setup
+  script:
     - apk add --update git
     - apk --no-cache add g++ gcc libgcc libstdc++ linux-headers make python
     - npm install --quiet node-gyp -g
     - npm install
     - npm rebuild bcrypt --build-from-source
     - npm rebuild node-sass
-  cache:
-    paths:
-      - node_modules/
+
+build-node:
+  image: node:alpine
+  stage: build-node
   script:
     - npm run build
   artifacts:
@@ -47,7 +53,7 @@ deploy_stage:
   stage: deploy-stage
   image: tmaier/docker-compose
   variables:
-    DOCKER_HOST: "tcp://charity-staging.westeurope.cloudapp.azure.com:2376"
+    DOCKER_HOST: "tcp://charity-staging-do.bankex.team:2376"
     DOCKER_TLS_VERIFY: "1"
     SERVERNAME: meta.staging.bankex.team
     EMAIL: "om@bankexfoundation.org"
@@ -56,9 +62,9 @@ deploy_stage:
     DOCKER_CERT_PATH: "/certs"
   before_script:
     - mkdir -p $DOCKER_CERT_PATH
-    - echo "$DOCKER_CA" > $DOCKER_CERT_PATH/ca.pem
-    - echo "$DOCKER_CERT" > $DOCKER_CERT_PATH/cert.pem
-    - echo "$DOCKER_KEY" > $DOCKER_CERT_PATH/key.pem
+    - echo "$DO_DOCKER_CA_STAGE" > $DOCKER_CERT_PATH/ca.pem
+    - echo "$DO_DOCKER_CERT_STAGE" > $DOCKER_CERT_PATH/cert.pem
+    - echo "$DO_DOCKER_KEY_STAGE" > $DOCKER_CERT_PATH/key.pem
     - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
@@ -76,16 +82,16 @@ tests-stage:
   image: docker:latest
   stage: tests-stage
   variables:
-    DOCKER_HOST: "tcp://charity-staging.westeurope.cloudapp.azure.com:2376"
+    DOCKER_HOST: "tcp://charity-staging-do.bankex.team:2376"
     DOCKER_TLS_VERIFY: "1"
     SERVERNAME: meta.staging.bankex.team
     NODE_ENV: "staging"
     DOCKER_CERT_PATH: "/certs"
   before_script:
     - mkdir -p $DOCKER_CERT_PATH
-    - echo "$DOCKER_CA" > $DOCKER_CERT_PATH/ca.pem
-    - echo "$DOCKER_CERT" > $DOCKER_CERT_PATH/cert.pem
-    - echo "$DOCKER_KEY" > $DOCKER_CERT_PATH/key.pem
+    - echo "$DO_DOCKER_CA_STAGE" > $DOCKER_CERT_PATH/ca.pem
+    - echo "$DO_DOCKER_CERT_STAGE" > $DOCKER_CERT_PATH/cert.pem
+    - echo "$DO_DOCKER_KEY_STAGE" > $DOCKER_CERT_PATH/key.pem
   script:
     - docker exec -i -e NODE_ENV=$NODE_ENV oc_meta sh -c "npm i mocha -g && npm run test"
 
@@ -93,7 +99,7 @@ deploy_prod:
   stage: deploy-prod
   image: tmaier/docker-compose
   variables:
-    DOCKER_HOST: "tcp://charity-prod.westeurope.cloudapp.azure.com:2376"
+    DOCKER_HOST: "tcp://charity-prod-do.bankex.team:2376"
     DOCKER_TLS_VERIFY: "1"
     SERVERNAME: meta.bankex.team
     EMAIL: "om@bankexfoundation.org"
@@ -102,9 +108,9 @@ deploy_prod:
     DOCKER_CERT_PATH: "/certs"
   before_script:
     - mkdir -p $DOCKER_CERT_PATH
-    - echo "$DOCKER_CA" > $DOCKER_CERT_PATH/ca.pem
-    - echo "$DOCKER_CERT" > $DOCKER_CERT_PATH/cert.pem
-    - echo "$DOCKER_KEY" > $DOCKER_CERT_PATH/key.pem
+    - echo "$DO_DOCKER_CA_PROD" > $DOCKER_CERT_PATH/ca.pem
+    - echo "$DO_DOCKER_CERT_PROD" > $DOCKER_CERT_PATH/cert.pem
+    - echo "$DO_DOCKER_KEY_PROD" > $DOCKER_CERT_PATH/key.pem
     - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
@@ -124,16 +130,16 @@ tests-prod:
   image: docker:latest
   stage: tests-prod
   variables:
-    DOCKER_HOST: "tcp://charity-prod.westeurope.cloudapp.azure.com:2376"
+    DOCKER_HOST: "tcp://charity-prod-do.bankex.team:2376"
     DOCKER_TLS_VERIFY: "1"
     SERVERNAME: meta.bankex.team
     NODE_ENV: "production"
     DOCKER_CERT_PATH: "/certs"
   before_script:
     - mkdir -p $DOCKER_CERT_PATH
-    - echo "$DOCKER_CA" > $DOCKER_CERT_PATH/ca.pem
-    - echo "$DOCKER_CERT" > $DOCKER_CERT_PATH/cert.pem
-    - echo "$DOCKER_KEY" > $DOCKER_CERT_PATH/key.pem
+    - echo "$DO_DOCKER_CA_PROD" > $DOCKER_CERT_PATH/ca.pem
+    - echo "$DO_DOCKER_CERT_PROD" > $DOCKER_CERT_PATH/cert.pem
+    - echo "$DO_DOCKER_KEY_PROD" > $DOCKER_CERT_PATH/key.pem
   script:
     - docker exec -i -e NODE_ENV=$NODE_ENV oc_meta sh -c "npm i mocha -g && npm run test"
   only:
