@@ -4,16 +4,6 @@
 1. склонировать репозиторий
 2. npm install
 3. настроить файлы config: development.yaml, staging.yaml и production.yaml
-```
-    env: development
-    address:
-      internal: 'http://127.0.0.1:8080'
-      external: 'http://127.0.0.1:8080'
-    dirs:
-      main: 'C:/NodeJS/OpenCharity'
-      public: 'C:/NodeJS/OpenCharity/public/'
-      storage: 'C:/NodeJS/OpenCharity/storage/'
-```
 4. Для запуска в development-окружении: npm run development
 5. Для запуска в окружених staging |production:
     * создать пустую папку build в корне проекта
@@ -106,8 +96,19 @@ const sendBlobToServer = (blob) => {
 ```
 attachment.hash указывает на binary-данные.
 
-### GET /api/meta/search/:text
-Отдает проиндексированные JSON-данные, реально хранящиеся в storage в виде объекта {hash: data}
+### POST /api/meta/search
+Ищет запрос в проиндексированных данных.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Запрос может быть двух видов:
+1. Обычный текстовый запрос. Например, строка 'космос текст' найдет все документы где в теле упоминаются оба этих слова.
+2. Запрос JSON по правилам библиотеки search-index (https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md)
+
+Возвращает объект вида:
+```
+    {multiHash: {document}, multiHash: {document}, ...}
+```
+multiHash актуален только для метаданных. По нему можно найти соответствующий документ на метасервере.<br/>
+Пример:
 ```
 {
     "QmfJUuV34ZqBBbfQ29uj6Fu9MLzWsCLKkDJLRk6GSWWEVQ":{
@@ -119,15 +120,14 @@ attachment.hash указывает на binary-данные.
             "type":"image/jpeg",
             "size":39965}
     },
-    "QmegGGjJVBi4VcvUPZM6YX5aLSj7yiCZCuyD9w82izEUjX":{
-        "title":"Первый выход в открытый космос",
-        "description":"В открытом космосе всё открыто и можно идти куда захочешь.",
-        "attachment":{
-            "hash":"QmPB8SccRwMxFzFMdC1JVwnWku3uAUHPpvDvCLNrvUACb1",
-            "name":"Стор1.pdf",
-            "type":"application/pdf",
-            "size":3910
-        }
+    "Qmdw8cYKmUDxmeNLjZBjukazaDEQs25ZyVTRfuQ8mjcjGL":{
+        "name":"first CE",
+        "payed":"0",
+        "target":"1000",
+        "raised":"0",
+        "tags":"0x30",
+        "address":"0x4fefeb18f51d658ab7bf71f7613196f9401af87f",
+        "date":"2018-2-18 13:55:15"
     }
 }
 ```
