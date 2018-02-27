@@ -3,11 +3,17 @@ import Router from 'koa-router';
 const router = new Router();
 
 router
-  .get('/api/testAPI', async (ctx) => {
+  .get('/', getUser(), async (ctx) => {
+    ctx.body = 'metadata';
+  })
+  .get('/api/testAPI', getUser(), async (ctx) => {
     await ctx.render('testAPI');
   })
   .get('*', async (ctx) => {
-    ctx.body = 'metadata';
+    ctx.state.message = 'Запрос к API некорректен';
+    ctx.state.status = 404;
+    ctx.res.statusCode = 404;
+    await ctx.render('error');
   })
 ;
 

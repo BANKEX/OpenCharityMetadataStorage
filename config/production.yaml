@@ -1,7 +1,7 @@
 env: production
 address:
   internal: 'http://0.0.0.0:8080'
-  external: 'https://meta.bankex.team'
+  external: 'https://opencharity.staging.bankex.team'
 dirs:
   main: '/oc_meta/'
   public: '/oc_meta/public/'
