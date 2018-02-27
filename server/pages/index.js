@@ -3,10 +3,10 @@ import Router from 'koa-router';
 const router = new Router();
 
 router
-  .get('/', getUser(), async (ctx) => {
+  .get('/', async (ctx) => {
     ctx.body = 'metadata';
   })
-  .get('/api/testAPI', getUser(), async (ctx) => {
+  .get('/api/testAPI', async (ctx) => {
     await ctx.render('testAPI');
   })
   .get('*', async (ctx) => {

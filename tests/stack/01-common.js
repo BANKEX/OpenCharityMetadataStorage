@@ -36,10 +36,10 @@ describe('--------Common tests-----------', ()=> {
     });
   });
 
-  it('HTML Ошибки при запросе /hello', (done)=> {
+  it('HTML Ошибки при запросе /api/hello', (done)=> {
     request(mainURL+'/api/hello', (err, resp, body) => {
       if (err) return done(err);
-      assert.equal(body, 'metadata');
+      assert.equal(body.indexOf('Запрос к API некорректен')!=-1, true);
       done();
     });
   });
