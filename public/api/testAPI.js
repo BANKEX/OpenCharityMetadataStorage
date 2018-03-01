@@ -64,9 +64,9 @@ const upload = async () => {
         }
       });
       const data = {
-        title: titleUL.value,
-        description: descriptionUL.value,
-        attachments: attachments
+        eventName: titleUL.value,
+        eventDetails: descriptionUL.value,
+        images: attachments
       };
       console.log(data);
       respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(data)])]);
@@ -97,8 +97,8 @@ const download = () => {
       try {
         const simple = JSON.parse(event.target.responseText);
         respDL.innerHTML = event.target.responseText;
-        if (simple.attachments) {
-          DLattach.innerHTML = simple.attachments.map((attach) => ('<a href="/api/meta/getData/' + attach.hash + '" download="' + attach.name + '">'+attach.name+'</a>'));
+        if (simple.images) {
+          DLattach.innerHTML = simple.images.map((attach) => ('<a href="/api/meta/getData/' + attach.hash + '" download="' + attach.name + '">'+attach.name+'</a>'));
         }
       } catch (e) {
         if (event.target.responseText.indexOf('----------------------------')==0) {
