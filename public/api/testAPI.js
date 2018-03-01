@@ -1,5 +1,5 @@
-let attachBlob;
-const fileChange = (e) => {attachBlob = e.target.files[0]};
+let attachBlobs;
+const fileChange = (e) => {attachBlobs = e.target.files};
 fileUL.addEventListener('change', fileChange, false);
 
 const sendBlobToServer = (blob) => {
@@ -24,24 +24,52 @@ const sendBlobToServer = (blob) => {
   });
 };
 
+const sendBlobsToServer = (blobs) => {
+  return new Promise((resolve, reject) => {
+    let counter=0;
+    const hashes = [];
+    for (let i=0, len=blobs.length; i<len; i++) {
+      const blob = blobs[i];
+      const reader = new FileReader();
+      const xhr = new XMLHttpRequest();
+      xhr.open('post', '/api/meta/postData');
+      xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
+      reader.readAsArrayBuffer(blob);
+      reader.onload = function (event) {
+        xhr.send(event.target.result);
+        xhr.onload = (event) => {
+          if (event.target.status==200) {
+            hashes[i] = event.target.responseText;
+            counter++;
+            if (counter==len) resolve(hashes);
+          } else {reject(event.target.responseText)}
+        };
+      }
+    }
+  });
+};
+
 const upload = async () => {
   try {
     respUL.innerHTML = '';
     // if (!titleUL.value || !descriptionUL.value) throw new Error('Title & Description are required fields');
-    if (attachBlob) {
-      const attachHash = await sendBlobToServer(attachBlob);
+    if (attachBlobs) {
+      const attachHashes = await sendBlobsToServer(attachBlobs);
+      const attachments = attachHashes.map((hash, index) => {
+        return {
+          hash: hash,
+          name: attachBlobs[index].name,
+          type: attachBlobs[index].type,
+          size: attachBlobs[index].size
+        }
+      });
       const data = {
         title: titleUL.value,
         description: descriptionUL.value,
-        attachment: {
-          hash: attachHash,
-          name: attachBlob.name,
-          type: attachBlob.type,
-          size: attachBlob.size
-        }
+        attachments: attachments
       };
       console.log(data);
-      respUL.innerHTML = await sendBlobToServer(new Blob([JSON.stringify(data)]));
+      respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(data)])]);
     } else {
       if (confirm('Upload without attachment?')) {
         const data = {
@@ -49,7 +77,7 @@ const upload = async () => {
           description: descriptionUL.value,
         };
         console.log(data);
-        respUL.innerHTML = await sendBlobToServer(new Blob([JSON.stringify(data)]));
+        respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(data)])]);
       }
     }
   } catch(err) {
@@ -69,8 +97,8 @@ const download = () => {
       try {
         const simple = JSON.parse(event.target.responseText);
         respDL.innerHTML = event.target.responseText;
-        if (simple.attachment) {
-          DLattach.innerHTML = '<a href="/api/meta/getData/' + simple.attachment.hash + '" download="' + simple.attachment.name + '">attach</a>';
+        if (simple.attachments) {
+          DLattach.innerHTML = simple.attachments.map((attach) => ('<a href="/api/meta/getData/' + attach.hash + '" download="' + attach.name + '">'+attach.name+'</a>'));
         }
       } catch (e) {
         if (event.target.responseText.indexOf('----------------------------')==0) {
