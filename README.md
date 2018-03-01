@@ -52,49 +52,58 @@
 
 ### POST /api/meta/postData
 Отправка метаданных на сервер.<br/>
-Фронтэнд функция sendBlobToServer принимает blob и отправляет на сервер данные через поток.<br/>
-Обязательные поля для JSON-данных: title, description.<br/>
+Фронтэнд функция sendBlobsToServer принимает blobs - нумированный объект или массив и отправляет на сервер данные через поток.<br/>
 Пример обработки полученных данных см. в public/testAPI.js <br/>
 ```
-const sendBlobToServer = (blob) => {
+const sendBlobsToServer = (blobs) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    const xhr = new XMLHttpRequest();
-    xhr.open('post', '/api/meta/postData');
-    xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
-    reader.readAsArrayBuffer(blob);
-    reader.onload = function (event) {
-      xhr.send(event.target.result);
-      xhr.onload = function (event) {
-        switch (event.target.status) {
-          case 200:
-            resolve(event.target.responseText);
-            break;
-          default:
-            reject(event.target.responseText);
-        }
-      };
+    let counter=0;
+    const hashes = [];
+    for (let i=0, len=blobs.length; i<len; i++) {
+      const blob = blobs[i];
+      const reader = new FileReader();
+      const xhr = new XMLHttpRequest();
+      xhr.open('post', '/api/meta/postData');
+      xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
+      reader.readAsArrayBuffer(blob);
+      reader.onload = function (event) {
+        xhr.send(event.target.result);
+        xhr.onload = (event) => {
+          if (event.target.status==200) {
+            hashes[i] = event.target.responseText;
+            counter++;
+            if (counter==len) resolve(hashes);
+          } else {reject(event.target.responseText)}
+        };
+      }
     }
   });
 };
 ```
-При успешном сохранении метаинформации возвращает hash
+При успешном сохранении метаинформации возвращает массив hashes.
 
 ### Структура метаданных
-Данные JSON индексируются для поиска и хранятся в следующем виде:
+Данные JSON индексируются для поиска и хранятся, например, в следующем виде:
 ```
 {
-    "title": "Первый выход в открытый космос",
-    "description": "В открытом космосе всё открыто и можно идти куда захочешь.",
-    "attachment":{
+    "eventName":"название пакета  документов",
+    "eventDetails":"описание пакета документов",
+    "images":[
+        {
+        "hash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX",
+        "name":"19itg8t.JPG",
+        "type":"image/jpeg",
+        "size":39965
+        },{
         "hash":"QmPB8SccRwMxFzFMdC1JVwnWku3uAUHPpvDvCLNrvUACb1",
         "name":"Стор1.pdf",
         "type":"application/pdf",
         "size":3910
-    }
+        }
+    ]
 }
 ```
-attachment.hash указывает на binary-данные.
+images.hash указывает на binary-данные.
 
 ### POST /api/meta/search
 Ищет запрос в проиндексированных данных.<br/>

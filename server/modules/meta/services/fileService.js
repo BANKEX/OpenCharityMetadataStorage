@@ -130,8 +130,7 @@ const writeFile = (stream, tempPathFile) => {
           const tempFile = fs.readFileSync(tempPathFile);
           let isJSON;
           try {
-            const data = JSON.parse(tempFile);
-            if (!data.title || !data.description) return localError(601);
+            JSON.parse(tempFile);
             isJSON = true;
           } catch (e) {
             isJSON = false;
@@ -142,7 +141,7 @@ const writeFile = (stream, tempPathFile) => {
           const multiHashB58 = multihash.toB58String(multiHashBuffer);
           const metadataStoragePath = getStoragePath(multiHashB58, isJSON);
           if (!metadataStoragePath) return localError(605);
-          if (!makeStorageDirs(metadataStoragePath, isJSON)) return localError(605);
+          if (!makeStorageDirs(metadataStoragePath)) return localError(605);
           if (!fs.existsSync(metadataStoragePath)) {
             fs.renameSync(tempPathFile, metadataStoragePath);
             if (isJSON) addFileIndex(metadataStoragePath);
