@@ -195,8 +195,9 @@ const writeFile = (stream, tempPathFile) => {
 const deleteStorage = () => {
   return new Promise((resolve, reject) => {
     try {
-      deleteFolderRecursive(DIRS.storage);
-      fs.mkdirSync(DIRS.storage);
+      deleteFolderRecursive(DIRS.storage + 'temp/');
+      deleteFolderRecursive(DIRS.storage + 'data/');
+      deleteFolderRecursive(DIRS.storage + 'index/');
       fs.mkdirSync(DIRS.storage + 'temp/');
       fs.mkdirSync(DIRS.storage + 'data/');
       resolve(true);
