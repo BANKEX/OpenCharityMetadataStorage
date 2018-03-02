@@ -9,7 +9,7 @@ router
   .post('/search', controller.search)
   .post('/addIndex', controller.addIndex)
   .post('/reindex', controller.reindex)
-  .post('/drop', controller.reindex)
+  .post('/drop', controller.drop)
 ;
 
 export default router.routes();
