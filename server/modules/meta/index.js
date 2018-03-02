@@ -8,6 +8,8 @@ router
   .post('/postData', controller.postData)
   .post('/search', controller.search)
   .post('/addIndex', controller.addIndex)
+  .post('/reindex', controller.reindex)
+  .post('/drop', controller.reindex)
 ;
 
 export default router.routes();

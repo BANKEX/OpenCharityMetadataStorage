@@ -1,7 +1,7 @@
 import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { readFiles, writeFile } from '../services/fileService';
-import { search, addJSONIndex } from '../services/searchService';
+import { readFiles, writeFile, deleteStorage, deleteIndex, researchData } from '../services/fileService';
+import { init, search, addJSONIndex, addFileIndex, close } from '../services/searchService';
 
 export default {
   async getData(ctx) {
@@ -26,6 +26,28 @@ export default {
     if (ctx.request.header['content-type']!='application/json' &&
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     await addJSONIndex(ctx.request.body);
+    ctx.body = 'Ok';
+  },
+
+  async reindex(ctx) {
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    if (ctx.request.body.password!='reindex') throw new AppError(401, 100);
+    await close();
+    await deleteIndex();
+    init(() => {
+      researchData(addFileIndex);
+    });
+    ctx.body = 'Ok';
+  },
+
+  async drop(ctx) {
+    if (ctx.request.header['content-type']!='application/json' &&
+      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
+    if (ctx.request.body.password!='drop') throw new AppError(401, 100);
+    await close();
+    await deleteStorage();
+    init();
     ctx.body = 'Ok';
   },
 };

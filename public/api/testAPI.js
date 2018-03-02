@@ -2,28 +2,6 @@ let attachBlobs;
 const fileChange = (e) => {attachBlobs = e.target.files};
 fileUL.addEventListener('change', fileChange, false);
 
-const sendBlobToServer = (blob) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    const xhr = new XMLHttpRequest();
-    xhr.open('post', '/api/meta/postData');
-    xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
-    reader.readAsArrayBuffer(blob);
-    reader.onload = function (event) {
-      xhr.send(event.target.result);
-      xhr.onload = function (event) {
-        switch (event.target.status) {
-          case 200:
-            resolve(event.target.responseText);
-            break;
-          default:
-            reject(event.target.responseText);
-        }
-      };
-    }
-  });
-};
-
 const sendBlobsToServer = (blobs) => {
   return new Promise((resolve, reject) => {
     let counter=0;
@@ -52,7 +30,6 @@ const sendBlobsToServer = (blobs) => {
 const upload = async () => {
   try {
     respUL.innerHTML = '';
-    // if (!titleUL.value || !descriptionUL.value) throw new Error('Title & Description are required fields');
     if (attachBlobs) {
       const attachHashes = await sendBlobsToServer(attachBlobs);
       const attachments = attachHashes.map((hash, index) => {
@@ -131,4 +108,24 @@ const search = () => {
   };
 };
 
+const reindex = () => {
+  respRE.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/meta/reindex/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ password: passRE.value}));
+  xhr.onload = (event) => {
+    respRE.innerHTML = event.target.responseText;
+  };
+};
 
+const drop = () => {
+  respDrop.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/meta/drop/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ password: passDrop.value}));
+  xhr.onload = (event) => {
+    respDrop.innerHTML = event.target.responseText;
+  };
+};

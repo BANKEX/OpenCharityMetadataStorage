@@ -7,19 +7,23 @@ import { Readable } from 'stream';
 
 let index;
 
-searchIndex(
-  {
-    indexPath: DIRS.storage + 'index',
-    logLevel: 'error',
-  },
-  (err, newIndex) => {
-    if (!err) {
-      index = newIndex;
-    } else {
-      console.log(err);
+const init = (callback) => {
+  searchIndex(
+    {
+      indexPath: DIRS.storage + 'index',
+      logLevel: 'error',
+    },
+    (err, newIndex) => {
+      if (!err) {
+        console.log('Index open');
+        index = newIndex;
+        if (callback) callback();
+      } else {
+        console.log(err);
+      }
     }
-  }
-);
+  );
+};
 
 const search = (text) => {
   return new Promise((resolve, reject) => {
@@ -62,8 +66,22 @@ const addJSONIndex = (obj) => {
 };
 
 
+const close = () => {
+  return new Promise((resolve, reject) => {
+    index.close((err) => {
+      if (err) reject(err);
+      console.log('Index close');
+      resolve(true);
+    });
+  });
+};
+
+init();
+
 export {
+  init,
   search,
   addFileIndex,
   addJSONIndex,
+  close,
 };

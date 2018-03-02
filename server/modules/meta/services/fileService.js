@@ -2,10 +2,47 @@ import multihash from 'multihashes';
 import crypto from 'crypto';
 import FormData from 'form-data';
 import fs from 'fs';
-import { fileSettings } from 'configuration';
+import { fileSettings, DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs } from './helpers.js';
 import { addFileIndex } from './searchService';
+
+let reindexBinary = 0;
+let reindexJSON = 0;
+
+const deleteFolderRecursive = (path) => {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file) => {
+      const curPath = path + '/' + file;
+      if (fs.lstatSync(curPath).isDirectory()) {
+        deleteFolderRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+
+const getFilePathRecursive = (path, callback) => {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file) => {
+      const curPath = path + '/' + file;
+      if (fs.lstatSync(curPath).isDirectory()) {
+        getFilePathRecursive(curPath, callback);
+      } else {
+        try {
+          const tempFile = fs.readFileSync(curPath);
+          JSON.parse(tempFile);
+          reindexJSON++;
+          callback(curPath);
+        } catch (e) {
+          reindexBinary++;
+        }
+      }
+    });
+  }
+};
 
 const readFiles = (stream, multiHashRequest) => {
   if (multiHashRequest.length==1) {
@@ -155,7 +192,43 @@ const writeFile = (stream, tempPathFile) => {
   });
 };
 
+const deleteStorage = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      deleteFolderRecursive(DIRS.storage);
+      fs.mkdirSync(DIRS.storage);
+      fs.mkdirSync(DIRS.storage + 'temp/');
+      fs.mkdirSync(DIRS.storage + 'data/');
+      resolve(true);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const deleteIndex = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      deleteFolderRecursive(DIRS.storage + 'index/');
+      resolve(true);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const researchData = (callback) => {
+  reindexBinary = 0;
+  reindexJSON = 0;
+  getFilePathRecursive(DIRS.storage+'data/', callback);
+  console.log('reindexBinary='+reindexBinary);
+  console.log('reindexJSON='+reindexJSON);
+};
+
 export {
   writeFile,
   readFiles,
+  deleteStorage,
+  deleteIndex,
+  researchData,
 };
