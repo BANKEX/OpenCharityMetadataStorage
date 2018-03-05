@@ -2,7 +2,7 @@ import { DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import fs from 'fs';
 
-const pathORG = DIRS.main + 'constants/' + process.env.NODE_ENV + '.json';
+const pathORG = DIRS.public + 'constants/' + process.env.NODE_ENV + '.json';
 
 export default {
   getOrgs(ctx) {
