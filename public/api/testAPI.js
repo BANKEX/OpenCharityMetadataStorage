@@ -129,3 +129,29 @@ const drop = () => {
     respDrop.innerHTML = event.target.responseText;
   };
 };
+
+const getOrgs = () => {
+  listOrgs.value = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('get', '/api/settings/organizations/');
+  xhr.send();
+  xhr.onload = (event) => {
+    listOrgs.value = event.target.responseText;
+  };
+};
+
+const editListOrgs = () => {
+  respOrgs.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/settings/organizations/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({
+    password: passOrgs.value,
+    orgs: listOrgs.value
+  }));
+  xhr.onload = (event) => {
+    respOrgs.innerHTML = event.target.responseText;
+  };
+};
+
+getOrgs();
