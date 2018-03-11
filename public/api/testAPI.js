@@ -1,4 +1,6 @@
-let attachBlobs;
+let imageBlob, attachBlobs;
+const imageChange = (e) => {imageBlob = e.target.files};
+imageUL.addEventListener('change', imageChange, false);
 const fileChange = (e) => {attachBlobs = e.target.files};
 fileUL.addEventListener('change', fileChange, false);
 
@@ -30,33 +32,40 @@ const sendBlobsToServer = (blobs) => {
 const upload = async () => {
   try {
     respUL.innerHTML = '';
-    if (attachBlobs) {
-      const attachHashes = await sendBlobsToServer(attachBlobs);
-      const attachments = attachHashes.map((hash, index) => {
-        return {
-          hash: hash,
-          name: attachBlobs[index].name,
-          type: attachBlobs[index].type,
-          size: attachBlobs[index].size
-        }
-      });
-      const data = {
-        eventName: titleUL.value,
-        eventDetails: descriptionUL.value,
-        images: attachments
-      };
-      console.log(data);
-      respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(data)])]);
-    } else {
-      if (confirm('Upload without attachment?')) {
-        const data = {
-          title: titleUL.value,
-          description: descriptionUL.value,
-        };
-        console.log(data);
-        respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(data)])]);
+    const respObj = {
+      type: typeUL.value,
+      searchDescription: '',
+      data: {}
+    };
+
+    if (descriptionUL.value) {
+      respObj.data.description = descriptionUL.value;
+    }
+
+    if (imageBlob) {
+      const imageHash = await sendBlobsToServer(imageBlob);
+      respObj.data.image = {
+        name: imageBlob[0].name,
+        extension: imageBlob[0].type,
+        size: imageBlob[0].size,
+        storageHash: imageHash[0]
       }
     }
+
+    if (attachBlobs) {
+      const attachHashes = await sendBlobsToServer(attachBlobs);
+      respObj.data.attachments = attachHashes.map((hash, index) => {
+        return {
+          name: attachBlobs[index].name,
+          extension: attachBlobs[index].type,
+          size: attachBlobs[index].size,
+          storageHash: hash
+        }
+      });
+    }
+
+    console.log(respObj);
+    respUL.innerHTML = await sendBlobsToServer([new Blob([JSON.stringify(respObj)])]);
   } catch(err) {
     alert(err);
   }
@@ -95,16 +104,37 @@ const search = () => {
   const xhr = new XMLHttpRequest();
   xhr.open('post', '/api/meta/search/');
   xhr.setRequestHeader('Content-type', 'application/json');
-  let searchReq;
+  let searchRequest;
   try {
-    searchReq = JSON.parse(textSI.value.toLowerCase())
+    searchRequest = JSON.parse(textSI.value);
+    console.log(searchReq.query.AND);
   } catch(e) {
-    searchReq = false;
+    const searchRequestValue = textSI.value;
+    const typeRequest = selSI.value;
+    searchRequest = {
+      query: {
+        AND: {
+          '*' : searchRequestValue.toLowerCase().split(' ').filter(elem => elem!=''),
+          'type': (typeRequest=='') ? undefined : [typeRequest.toLowerCase()]
+        }
+      }
+    };
   }
-  body = (searchReq) ? searchReq : {text: textSI.value.toLowerCase()};
-  xhr.send(JSON.stringify(body));
+  xhr.send(JSON.stringify(searchRequest));
   xhr.onload = (event) => {
-    respSI.innerHTML = event.target.responseText;
+    try {
+      const resp = JSON.parse(event.target.responseText);
+      console.log(`${resp.length} docs found`);
+      if (resp.length>0) {
+        respSI.innerHTML = resp.map((elem) => {
+          return '<div>' + JSON.stringify(elem) + '</div>';
+        });
+      } else {
+        respSI.innerHTML = 'Nothing ...';
+      }
+    } catch (e){
+      respSI.innerHTML = event.target.responseText;
+    }
   };
 };
 

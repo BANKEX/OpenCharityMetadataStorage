@@ -22,9 +22,20 @@
     <div class="row">
       <h3>Upload metadata</h3>
       <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="title" id="titleUL">
+        <input class="form-control" type="text" placeholder="type" id="typeUL">
         <textarea class="form-control" placeholder="description" id="descriptionUL" rows="4"></textarea>
-        <input type="file" class="form-control" placeholder="attachement" multiple id="fileUL">
+        <div class="col-sm-2">
+          image
+        </div>
+        <div class="col-sm-10">
+          <input type="file" class="form-control" placeholder="image" id="imageUL">
+        </div>
+        <div class="col-sm-2">
+          attachments
+        </div>
+        <div class="col-sm-10">
+          <input type="file" class="form-control" placeholder="attachements" multiple id="fileUL">
+        </div>
         <button class="btn btn-success" onClick="upload()">Send</button>
       </div>
       <div class="col-sm-6 resp" id="respUL"></div>
@@ -45,6 +56,11 @@
     <div class="row">
       <h3>Search metadata</h3>
       <div class="col-sm-6">
+        <select id="selSI">
+          <option value="" selected>other...</option>
+          <option value="charityEvent">charityEvent</option>
+          <option value="incomingDonation">incomingDonation</option>
+        </select>
         <input class="form-control" type="text" placeholder="text" id="textSI">
         <button class="btn btn-success" onClick="search()">Send</button>
       </div>
@@ -52,7 +68,7 @@
     </div>
 
     <div class="row">
-      <h3>Re-index metadata</h3>
+      <h3>[reindex] metadata</h3>
       <div class="col-sm-6">
         <input class="form-control" type="password" placeholder="password" id="passRE">
         <button class="btn btn-danger" onClick="reindex()">Send</button>
@@ -61,7 +77,7 @@
     </div>
 
     <div class="row">
-      <h3>Drop metadata storage</h3>
+      <h3>[drop] metadata storage</h3>
       <div class="col-sm-6">
         <input class="form-control" type="password" placeholder="password" id="passDrop">
         <button class="btn btn-danger" onClick="drop()">Send</button>

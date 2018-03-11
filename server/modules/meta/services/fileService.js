@@ -167,7 +167,10 @@ const writeFile = (stream, tempPathFile) => {
           const tempFile = fs.readFileSync(tempPathFile);
           let isJSON;
           try {
-            JSON.parse(tempFile);
+            const parsed = JSON.parse(tempFile);
+            if (parsed.searchDescription==undefined || !parsed.type || !parsed.data) return localError(607);
+            if (typeof parsed.searchDescription!='string' || typeof parsed.type!='string' || typeof parsed.data!='object') return localError(608);
+            if (Object.getOwnPropertyNames(parsed.data).length==0) return localError(609);
             isJSON = true;
           } catch (e) {
             isJSON = false;

@@ -10,6 +10,7 @@ let index;
 const init = (callback) => {
   searchIndex(
     {
+      appendOnly: false,
       indexPath: DIRS.storage + 'index',
       logLevel: 'error',
     },
@@ -27,18 +28,22 @@ const init = (callback) => {
 
 const search = (text) => {
   return new Promise((resolve, reject) => {
-    const searchResult = {};
+    // const searchResult = {};
+    const searchResult = [];
     index.search(text)
       .on('error', (err) => {
         console.log(err);
         reject(err);
       })
       .on('data', (data) => {
+        /*
         const dataHashHex = crypto.createHash('sha256').update(JSON.stringify(data.document)).digest('hex');
         const dataHashBuffer = multihash.fromHexString(dataHashHex);
         const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
         const multiHashB58 = multihash.toB58String(multiHashBuffer);
         searchResult[multiHashB58] = data.document;
+        */
+        searchResult.push(data.document);
       })
       .on('end', () => {
         return resolve(JSON.stringify(searchResult));
@@ -64,7 +69,6 @@ const addJSONIndex = (obj) => {
       console.log('Object - indexed');
     });
 };
-
 
 const close = () => {
   return new Promise((resolve, reject) => {
