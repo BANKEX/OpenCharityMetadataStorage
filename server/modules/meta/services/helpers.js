@@ -8,6 +8,11 @@ function isB58(multiHashB58) {
   return true;
 }
 
+function getHashFromPath(path) {
+  const hashSlash = path.replace(DIRS.storage + 'data/', '');
+  return hashSlash.replace(/\//g, '');
+}
+
 function getStoragePath(multiHashB58) {
   if (!isB58(multiHashB58)) return false;
   let metadataStoragePath = DIRS.storage + 'data/';
@@ -52,9 +57,22 @@ function checkFile(multiHashB58) {
     : false;
 }
 
+const getAttachHashes = (obj) => {
+  let arr = [];
+  Object.getOwnPropertyNames(obj).forEach((key) => {
+    if (typeof obj[key] == 'object') arr = arr.concat(getAttachHashes(obj[key]));
+    if (key == 'storageHash') {
+      arr.push(obj[key]);
+    }
+  });
+  return arr;
+};
+
 export {
   isB58,
   getStoragePath,
   makeStorageDirs,
   checkFile,
+  getHashFromPath,
+  getAttachHashes,
 };

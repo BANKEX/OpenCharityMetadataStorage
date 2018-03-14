@@ -1,7 +1,4 @@
-import multihash from 'multihashes';
-import crypto from 'crypto';
 import searchIndex from 'search-index';
-import fs from 'fs';
 import { DIRS } from 'configuration';
 import { Readable } from 'stream';
 
@@ -27,6 +24,12 @@ const init = (callback) => {
 };
 
 const search = (text) => {
+  index.countDocs((err, count) => {
+    console.log('this index contains ' + count + ' documents');
+  });
+  index.totalHits(text, (err, count) => {
+    console.log('it gives ' + count + ' results');
+  });
   return new Promise((resolve, reject) => {
     // const searchResult = {};
     const searchResult = [];
@@ -51,23 +54,25 @@ const search = (text) => {
   });
 };
 
-const addFileIndex = (path) => {
-  fs.createReadStream(path)
-    .pipe(index.feed())
-    .on('finish', () => {
-      console.log(path + ' - indexed');
-    });
-};
-
 const addJSONIndex = (obj) => {
   const stream = new Readable( {objectMode: true} );
   stream.push(obj);
   stream.push(null);
+
+  stream
+    .pipe(index.defaultPipeline())
+    .pipe(index.add({ objectMode: true }))
+    .on('finish', function() {
+      console.log('Object - indexed');
+    });
+
+  /*
   stream
     .pipe(index.feed({ objectMode: true }))
     .on('finish', () => {
       console.log('Object - indexed');
     });
+  */
 };
 
 const close = () => {
@@ -80,12 +85,52 @@ const close = () => {
   });
 };
 
+const delIndex = (id) => {
+  return new Promise((resolve, reject) => {
+    index.get([id])
+      .on('data', (doc) => {
+        index.del([id], (err) => {
+          if (err) reject(err);
+          console.log('deleted ' + id);
+          resolve(true);
+        });
+      });
+    setTimeout(()=>{
+      resolve(false);
+    }, 500);
+  });
+};
+
+const flush = () => {
+  return new Promise((resolve, reject) => {
+    index.flush((err) => {
+      if (err) reject(err);
+      console.log('Index flushed');
+      resolve(true);
+    });
+  });
+};
+
+const getIndex = (id) => {
+  return new Promise((resolve, reject) => {
+    index.get([id])
+      .on('data', (doc) => {
+        resolve(doc);
+      });
+    setTimeout(()=>{
+      resolve(false);
+    }, 500);
+  });
+};
+
 init();
 
 export {
   init,
   search,
-  addFileIndex,
   addJSONIndex,
   close,
+  flush,
+  delIndex,
+  getIndex,
 };

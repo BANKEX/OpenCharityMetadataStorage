@@ -4,11 +4,8 @@ import FormData from 'form-data';
 import fs from 'fs';
 import { fileSettings, DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { isB58, getStoragePath, checkFile, makeStorageDirs } from './helpers.js';
-import { addFileIndex } from './searchService';
-
-let reindexBinary = 0;
-let reindexJSON = 0;
+import { isB58, getStoragePath, checkFile, makeStorageDirs, getHashFromPath, getAttachHashes } from './helpers.js';
+import { addJSONIndex } from './searchService';
 
 const deleteFolderRecursive = (path) => {
   if (fs.existsSync(path)) {
@@ -21,26 +18,6 @@ const deleteFolderRecursive = (path) => {
       }
     });
     fs.rmdirSync(path);
-  }
-};
-
-const getFilePathRecursive = (path, callback) => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file) => {
-      const curPath = path + '/' + file;
-      if (fs.lstatSync(curPath).isDirectory()) {
-        getFilePathRecursive(curPath, callback);
-      } else {
-        try {
-          const tempFile = fs.readFileSync(curPath);
-          JSON.parse(tempFile);
-          reindexJSON++;
-          callback(curPath);
-        } catch (e) {
-          reindexBinary++;
-        }
-      }
-    });
   }
 };
 
@@ -166,8 +143,9 @@ const writeFile = (stream, tempPathFile) => {
         if (!fail) {
           const tempFile = fs.readFileSync(tempPathFile);
           let isJSON;
+          let parsed;
           try {
-            const parsed = JSON.parse(tempFile);
+            parsed = JSON.parse(tempFile);
             if (parsed.searchDescription==undefined || !parsed.type || !parsed.data) return localError(607);
             if (typeof parsed.searchDescription!='string' || typeof parsed.type!='string' || typeof parsed.data!='object') return localError(608);
             if (Object.getOwnPropertyNames(parsed.data).length==0) return localError(609);
@@ -184,7 +162,10 @@ const writeFile = (stream, tempPathFile) => {
           if (!makeStorageDirs(metadataStoragePath)) return localError(605);
           if (!fs.existsSync(metadataStoragePath)) {
             fs.renameSync(tempPathFile, metadataStoragePath);
-            if (isJSON) addFileIndex(metadataStoragePath);
+            if (isJSON) {
+              parsed.id = multiHashB58;
+              addJSONIndex(parsed);
+            }
             return resolve(multiHashB58);
           } else {
             fs.unlinkSync(tempPathFile);
@@ -196,43 +177,120 @@ const writeFile = (stream, tempPathFile) => {
 };
 
 const deleteStorage = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      deleteFolderRecursive(DIRS.storage + 'temp/');
-      deleteFolderRecursive(DIRS.storage + 'data/');
-      deleteFolderRecursive(DIRS.storage + 'index/');
-      fs.mkdirSync(DIRS.storage + 'temp/');
-      fs.mkdirSync(DIRS.storage + 'data/');
-      resolve(true);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  deleteFolderRecursive(DIRS.storage + 'temp/');
+  deleteFolderRecursive(DIRS.storage + 'data/');
+  deleteFolderRecursive(DIRS.storage + 'index/');
+  fs.mkdirSync(DIRS.storage + 'temp/');
+  fs.mkdirSync(DIRS.storage + 'data/');
 };
 
-const deleteIndex = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      deleteFolderRecursive(DIRS.storage + 'index/');
-      resolve(true);
-    } catch (e) {
-      reject(e);
-    }
-  });
-};
+const researchData = (func, callback) => {
+  let reindexBinary = 0;
+  let reindexJSON = 0;
 
-const researchData = (callback) => {
+  const getFilePathRecursive = (path, callback) => {
+    if (fs.existsSync(path)) {
+      fs.readdirSync(path).forEach((file) => {
+        const curPath = path + '/' + file;
+        if (fs.lstatSync(curPath).isDirectory()) {
+          getFilePathRecursive(curPath, callback);
+        } else {
+          try {
+            const tempFile = fs.readFileSync(curPath);
+            const obj = JSON.parse(tempFile);
+            obj.id = getHashFromPath(curPath);
+            reindexJSON++;
+            callback(obj);
+          } catch (e) {
+            reindexBinary++;
+            callback({ bin: getHashFromPath(curPath) });
+          }
+        }
+      });
+    }
+  };
+
   reindexBinary = 0;
   reindexJSON = 0;
-  getFilePathRecursive(DIRS.storage+'data/', callback);
-  console.log('reindexBinary='+reindexBinary);
+  getFilePathRecursive(DIRS.storage+'data/', func);
   console.log('reindexJSON='+reindexJSON);
+  console.log('reindexBinary='+reindexBinary);
+  if (callback) callback(reindexJSON, reindexBinary);
+};
+
+const deleteFile = (hash) => {
+  const path = getStoragePath(hash);
+  if (!path) throw new AppError(409, 600);
+  fs.unlinkSync(path);
+};
+
+const updateMetadata = (oldHash, newHash) => {
+  const oldPath = getStoragePath(oldHash);
+  const newPath = getStoragePath(newHash);
+  if (oldPath && newPath) {
+    const oldFile = fs.readFileSync(oldPath);
+    const newFile = fs.readFileSync(newPath);
+    try {
+      const oldData = JSON.parse(oldFile);
+      const newData = JSON.parse(newFile);
+      const oldAttachments = getAttachHashes(oldData);
+      const newAttachments = getAttachHashes(newData);
+      const noUseAttachments = oldAttachments.filter((hash) => (newAttachments.indexOf(hash)==-1));
+      noUseAttachments.forEach(deleteFile);
+      deleteFile(oldHash);
+    } catch (e) {
+      throw e;
+    }
+  } else {
+    throw new AppError(409, 600);
+  }
+};
+
+const revision = (cb) => {
+  const rev = {
+    crashed: [],
+  };
+  const allBinaryHashes = [];
+  const allUsedBinaryHashes = [];
+  researchData((researchObject) => {
+    if (researchObject.id) {
+      const hash = researchObject.id;
+      const data = Object.assign({}, researchObject);
+      delete data.id;
+      const attachments = getAttachHashes(data);
+      const noExist = attachments.filter((hash) => {
+        const path = getStoragePath(hash);
+        if (!path) return true;
+        const available = fs.existsSync(path);
+        if (available) allUsedBinaryHashes.push(hash);
+        return !available;
+      });
+      if (noExist.length>0) {
+        const crashedJSON = {};
+        crashedJSON[hash] = noExist;
+        rev.crashed.push(crashedJSON);
+      }
+    } else {
+      allBinaryHashes.push(researchObject.bin);
+    }
+  }, (j, b) => {
+    rev.noUse = allBinaryHashes.filter((hash) => (allUsedBinaryHashes.indexOf(hash)==-1));
+    rev.statistic = {
+      allJSON: j,
+      allBinary: b,
+      crashedJSONs: rev.crashed.length,
+      noUsedBinary: rev.noUse.length,
+    };
+    cb(rev);
+  });
 };
 
 export {
   writeFile,
   readFiles,
+  deleteFile,
   deleteStorage,
-  deleteIndex,
   researchData,
+  updateMetadata,
+  revision,
 };

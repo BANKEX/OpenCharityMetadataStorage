@@ -20,6 +20,14 @@
     <h1>OpenCharityMetadata testAPI</h1>
 
     <div class="row">
+      <h3>Revision</h3>
+      <div class="col-sm-6">
+        <button class="btn btn-primary" onClick="revision()">Revision</button>
+      </div>
+      <div class="col-sm-6 resp" id="respREV"></div>
+    </div>
+
+    <div class="row">
       <h3>Upload metadata</h3>
       <div class="col-sm-6">
         <input class="form-control" type="text" placeholder="type" id="typeUL">
@@ -54,6 +62,25 @@
     </div>
 
     <div class="row">
+      <h3>Delete metadata</h3>
+      <div class="col-sm-6">
+        <input class="form-control" type="text" placeholder="hash" id="hashDel">
+        <button class="btn btn-success" onClick="deleteMeta()">Send</button>
+      </div>
+      <div class="col-sm-6 resp" id="respDel"></div>
+    </div>
+
+    <div class="row">
+      <h3>Update metadata</h3>
+      <div class="col-sm-6">
+        <input class="form-control" type="text" placeholder="oldHash" id="oldUPD">
+        <input class="form-control" type="text" placeholder="newHash" id="newUPD">
+        <button class="btn btn-success" onClick="updateMeta()">Send</button>
+      </div>
+      <div class="col-sm-6 resp" id="respUPD"></div>
+    </div>
+
+    <div class="row">
       <h3>Search metadata</h3>
       <div class="col-sm-6">
         <select id="selSI">
@@ -61,7 +88,15 @@
           <option value="charityEvent">charityEvent</option>
           <option value="incomingDonation">incomingDonation</option>
         </select>
-        <input class="form-control" type="text" placeholder="text" id="textSI">
+        <input class="form-control" type="text" placeholder="text" id="textSI" value="*">
+        <div class="input-group">
+          <span class="input-group-addon">pagesize</span>
+          <input class="form-control" type="number" id="sizeSI" value="10" step="10">
+        </div>
+        <div class="input-group">
+          <span class="input-group-addon">page</span>
+          <input class="form-control" type="number" id="pageSI" value="1" step="1">
+        </div>
         <button class="btn btn-success" onClick="search()">Send</button>
       </div>
       <div class="col-sm-6 resp" id="respSI"></div>

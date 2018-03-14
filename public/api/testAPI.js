@@ -112,6 +112,8 @@ const search = () => {
     const searchRequestValue = textSI.value;
     const typeRequest = selSI.value;
     searchRequest = {
+      pageSize: sizeSI.value,
+      offset: (pageSI.value-1)*sizeSI.value,
       query: {
         AND: {
           '*' : searchRequestValue.toLowerCase().split(' ').filter(elem => elem!=''),
@@ -181,6 +183,41 @@ const editListOrgs = () => {
   }));
   xhr.onload = (event) => {
     respOrgs.innerHTML = event.target.responseText;
+  };
+};
+
+const deleteMeta = () => {
+  respDel.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/meta/delData/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ hash: hashDel.value}));
+  xhr.onload = (event) => {
+    respDel.innerHTML = event.target.responseText;
+  };
+};
+
+const updateMeta = () => {
+  respUPD.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/meta/updateData/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({
+    oldHash: oldUPD.value,
+    newHash: newUPD.value
+  }));
+  xhr.onload = (event) => {
+    respUPD.innerHTML = event.target.responseText;
+  };
+};
+
+const revision = () => {
+  respREV.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('get', '/api/meta/revision/');
+  xhr.send();
+  xhr.onload = (event) => {
+    respREV.innerHTML = event.target.responseText;
   };
 };
 
