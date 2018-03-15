@@ -5,7 +5,8 @@ import fs from 'fs';
 import { fileSettings, DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs, getHashFromPath, getAttachHashes } from './helpers.js';
-import { addJSONIndex } from './searchService';
+import { addJSONIndex, delIndex } from './searchService';
+import { getMetamapData } from './metamapService';
 
 const deleteFolderRecursive = (path) => {
   if (fs.existsSync(path)) {
@@ -219,9 +220,10 @@ const researchData = (func, callback) => {
 };
 
 const deleteFile = (hash) => {
-  const path = getStoragePath(hash);
+  const path = checkFile(hash);
   if (!path) throw new AppError(409, 600);
   fs.unlinkSync(path);
+  delIndex(hash);
 };
 
 const updateMetadata = (oldHash, newHash) => {
@@ -247,50 +249,74 @@ const updateMetadata = (oldHash, newHash) => {
 };
 
 const revisionData = (type) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const rev = {
-      crashed: [],
+      missedBinary: [],
+      missedJSON: [],
+      unusedBinary: [],
+      unusedJSON: [],
+      statistic: {},
     };
+    if (type == 'long') rev.storeJSON = {};
+    if (type == 'deep') rev.wrongMultiHash = [];
+
     const allBinaryHashes = [];
     const allUsedBinaryHashes = [];
-    if (type == 'long') {
-      rev.jsons = {};
-    }
+
+    const db = await getMetamapData();
+    const metamapJSON = db.map((elem) => (elem.hash));
+    rev.missedJSON = metamapJSON;
     
     const doWithEveryObject = (researchObject) => {
       if (researchObject.id) {
         const hash = researchObject.id;
+        if (metamapJSON.indexOf(hash)==-1) {
+          rev.unusedJSON.push(hash);
+        } else {
+          rev.missedJSON = rev.missedJSON.filter((el) => (hash != el));
+        }
         const data = Object.assign({}, researchObject);
         delete data.id;
         const attachments = getAttachHashes(data);
         if (type == 'long') {
-          rev.jsons[hash] = attachments;
+          rev.storeJSON[hash] = attachments;
         }
         const noExist = attachments.filter((hash) => {
-          const path = getStoragePath(hash);
-          if (!path) return true;
-          const available = fs.existsSync(path);
-          if (available) allUsedBinaryHashes.push(hash);
-          return !available;
+          const path = checkFile(hash);
+          if (path) allUsedBinaryHashes.push(hash);
+          return (path==false);
         });
         if (noExist.length>0) {
-          const crashedJSON = {};
-          crashedJSON[hash] = noExist;
-          rev.crashed.push(crashedJSON);
+          const missedJSONbinary = {};
+          missedJSONbinary[hash] = noExist;
+          rev.missedBinary.push(missedJSONbinary);
         }
       } else {
         allBinaryHashes.push(researchObject.bin);
       }
+      if (type == 'deep') {
+        const hash = researchObject.id || researchObject.bin;
+        const file = fs.readFileSync(getStoragePath(hash));
+        const dataHashHex = crypto.createHash('sha256').update(file).digest('hex');
+        const dataHashBuffer = multihash.fromHexString(dataHashHex);
+        const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
+        const multiHashB58 = multihash.toB58String(multiHashBuffer);
+        if (multiHashB58!=hash) rev.wrongMultiHash.push(hash);
+      }
     };
 
     const researchDataCallback = (jsons, binaries) => {
-      rev.noUse = allBinaryHashes.filter((hash) => (allUsedBinaryHashes.indexOf(hash)==-1));
+      rev.unusedBinary = allBinaryHashes.filter((hash) => (allUsedBinaryHashes.indexOf(hash)==-1));
       rev.statistic = {
         allJSON: jsons,
         allBinary: binaries,
-        crashedJSONs: rev.crashed.length,
-        noUsedBinary: rev.noUse.length,
+        metamapJSONs: metamapJSON.length,
+        missedJSONs: rev.missedJSON.length,
+        unusedJSONs: rev.unusedJSON.length,
+        missedBinaries: rev.missedBinary.length,
+        unusedBinaries: rev.unusedBinary.length,
       };
+      if (type == 'deep') rev.statistic.wrongMultiHash = rev.wrongMultiHash.length;
       resolve(rev);
     };
 

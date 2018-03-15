@@ -73,6 +73,7 @@ const upload = async () => {
 
 const download = () => {
   respDL.innerHTML = '';
+  DLimage.innerHTML = '';
   DLattach.innerHTML = '';
   const xhr = new XMLHttpRequest();
   xhr.open('get', '/api/meta/getData/'+hashDL.value);
@@ -81,10 +82,13 @@ const download = () => {
     console.log(event.target);
     if (event.target.status == 200) {
       try {
-        const simple = JSON.parse(event.target.responseText);
+        const json = JSON.parse(event.target.responseText);
         respDL.innerHTML = event.target.responseText;
-        if (simple.images) {
-          DLattach.innerHTML = simple.images.map((attach) => ('<a href="/api/meta/getData/' + attach.hash + '" download="' + attach.name + '">'+attach.name+'</a>'));
+        if (json.data.image) {
+          DLimage.innerHTML = '<image width="10%" src="/api/meta/getData/' + json.data.image.storageHash + '" >';
+        }
+        if (json.data.attachments) {
+          DLattach.innerHTML = json.data.attachments.map((attach) => ('<a href="/api/meta/getData/' + attach.storageHash + '" download="' + attach.name+ '">'+attach.name+'</a>'));
         }
       } catch (e) {
         if (event.target.responseText.indexOf('----------------------------')==0) {
@@ -187,14 +191,16 @@ const editListOrgs = () => {
 };
 
 const deleteMeta = () => {
-  respDel.innerHTML = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('post', '/api/meta/delData/');
-  xhr.setRequestHeader('Content-type', 'application/json');
-  xhr.send(JSON.stringify({ hash: hashDel.value}));
-  xhr.onload = (event) => {
-    respDel.innerHTML = event.target.responseText;
-  };
+  if (confirm('Are you sure?')) {
+    respDel.innerHTML = '';
+    const xhr = new XMLHttpRequest();
+    xhr.open('post', '/api/meta/delData/');
+    xhr.setRequestHeader('Content-type', 'application/json');
+    xhr.send(JSON.stringify({hash: hashDel.value}));
+    xhr.onload = (event) => {
+      respDel.innerHTML = event.target.responseText;
+    };
+  }
 };
 
 const updateMeta = () => {
@@ -223,15 +229,14 @@ const revision = (type) => {
 };
 
 const recover = (type) => {
-  respREV.innerHTML = '';
+  respREC.innerHTML = '';
   const xhr = new XMLHttpRequest();
   xhr.open('post', '/api/meta/recover/');
   xhr.setRequestHeader('Content-type', 'application/json');
-  xhr.send(JSON.stringify({ password: passREC.value}));
+  xhr.send(JSON.stringify({ password: passREC.value, type: type }));
   xhr.onload = (event) => {
-    respREV.innerHTML = event.target.responseText;
+    respREC.innerHTML = event.target.responseText;
   };
 };
-
 
 getOrgs();

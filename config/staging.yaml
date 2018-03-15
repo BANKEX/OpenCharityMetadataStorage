@@ -2,6 +2,7 @@ env: staging
 address:
   internal: 'http://0.0.0.0:8080'
   external: 'https://opencharity.staging.bankex.team'
+cabinet: 'https://donatorscab.staging.bankex.team'
 dirs:
   main: '/oc_meta/'
   public: '/oc_meta/public/'

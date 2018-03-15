@@ -33,17 +33,23 @@ export default {
   },
   
   async revision(ctx) {
-    if (ctx.params.set == 'lite') ctx.body = await revisionData();
-    if (ctx.params.set == 'deep') ctx.body = 'Ревизия с чтением каждого файла и сравнение хэша с назаванием файла';
-    if (ctx.params.set == 'long') ctx.body = await revisionData('long');
+    const REVISION_TYPES = ['lite', 'long', 'deep'];
+    if (REVISION_TYPES.indexOf(ctx.params.set)==-1) throw new AppError(406, 600);
+    ctx.body = await revisionData(ctx.params.set);
   },
 
   async recover(ctx) {
     if (ctx.request.header['content-type']!='application/json' &&
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='recover') throw new AppError(401, 100);
-    const rev = await revisionData();
-    rev.noUse.forEach(deleteFile);
+    const type = ctx.request.body.type; 
+    if (!type) throw new AppError(406, 601);
+    const RECOVER_TYPES = ['wrongMultiHash', 'unusedJSON', 'unusedBinary'];
+    if (RECOVER_TYPES.indexOf(type)==-1) throw new AppError(406, 600);
+    const revType = (type == 'wrongMultiHash') ? 'deep' : 'lite';
+    const rev = await revisionData(revType);
+    console.log(rev);
+    rev[type].forEach(deleteFile);
     ctx.body = 'Ok';
   },
 };

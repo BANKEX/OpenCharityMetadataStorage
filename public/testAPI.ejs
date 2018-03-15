@@ -27,21 +27,35 @@
           <button class="btn btn-primary btn-sm" onClick="revision('long')">Revision long</button>
           <button class="btn btn-primary btn-sm" onClick="revision('deep')">Revision deep</button>
         </p>
-        <div class="input-group">
-          <span class="input-group-addon">[recover] after revision</span>
-          <input type="password" class="form-control" id="passREC">
-          <span class="input-group-btn">
-            <button class="btn btn-danger" type="button" onClick="recover()">Send</button>
-          </span>
-        </div>
       </div>
       <div class="col-sm-6 resp" id="respREV"></div>
     </div>
 
     <div class="row">
+      <h3>[recover] metaStorage</h3>
+      <div class="col-sm-6">
+
+        <div class="input-group">
+          <span class="input-group-addon">password</span>
+          <input type="password" class="form-control" id="passREC">
+          <div class="input-group-btn">
+            <button class="btn btn-danger dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
+            <ul class="dropdown-menu pull-right">
+              <li><a onClick="recover('wrongMultiHash')">Del wrongMultiHash</a></li>
+              <li><a onClick="recover('unusedJSON')">Del unusedJSON</a></li>
+              <li><a onClick="recover('unusedBinary')">Del unusedBinary</a></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-sm-6 resp" id="respREC"></div>
+    </div>
+
+    <div class="row">
       <h3>Upload metadata</h3>
       <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="type" id="typeUL">
+        <input class="form-control" type="text" placeholder="type" id="typeUL" value="charityEvent">
         <textarea class="form-control" placeholder="description" id="descriptionUL" rows="4"></textarea>
         <div class="col-sm-2">
           image
@@ -68,6 +82,7 @@
       </div>
       <div class="col-sm-6 resp">
         <div id="respDL"></div>
+        <div id="DLimage"></div>
         <div id="DLattach"></div>
       </div>
     </div>
@@ -92,7 +107,7 @@
     </div>
 
     <div class="row">
-      <h3>Search metadata</h3>
+      <h3>Search</h3>
       <div class="col-sm-6">
         <select id="selSI">
           <option value="" selected>other...</option>
@@ -114,7 +129,7 @@
     </div>
 
     <div class="row">
-      <h3>[reindex] metadata</h3>
+      <h3>[reindex] search (delete DAPP-object)</h3>
       <div class="col-sm-6">
         <input class="form-control" type="password" placeholder="password" id="passRE">
         <button class="btn btn-danger" onClick="reindex()">Send</button>
@@ -123,7 +138,7 @@
     </div>
 
     <div class="row">
-      <h3>[drop] metadata storage</h3>
+      <h3>[drop] storage & search-index</h3>
       <div class="col-sm-6">
         <input class="form-control" type="password" placeholder="password" id="passDrop">
         <button class="btn btn-danger" onClick="drop()">Send</button>

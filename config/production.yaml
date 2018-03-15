@@ -2,6 +2,7 @@ env: production
 address:
   internal: 'http://0.0.0.0:8080'
   external: 'https://opencharity.bankex.team'
+cabinet: 'https://donatorscab.bankex.team'
 dirs:
   main: '/oc_meta/'
   public: '/oc_meta/public/'

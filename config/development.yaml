@@ -2,6 +2,7 @@ env: development
 address:
   internal: 'http://127.0.0.1:8081'
   external: 'http://127.0.0.1:8081'
+cabinet: 'http://127.0.0.1:8080'
 dirs:
   main: 'C:/NodeJS/OpenCharity/'
   public: 'C:/NodeJS/OpenCharity/public/'
