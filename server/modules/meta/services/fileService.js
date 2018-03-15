@@ -246,42 +246,55 @@ const updateMetadata = (oldHash, newHash) => {
   }
 };
 
-const revision = (cb) => {
-  const rev = {
-    crashed: [],
-  };
-  const allBinaryHashes = [];
-  const allUsedBinaryHashes = [];
-  researchData((researchObject) => {
-    if (researchObject.id) {
-      const hash = researchObject.id;
-      const data = Object.assign({}, researchObject);
-      delete data.id;
-      const attachments = getAttachHashes(data);
-      const noExist = attachments.filter((hash) => {
-        const path = getStoragePath(hash);
-        if (!path) return true;
-        const available = fs.existsSync(path);
-        if (available) allUsedBinaryHashes.push(hash);
-        return !available;
-      });
-      if (noExist.length>0) {
-        const crashedJSON = {};
-        crashedJSON[hash] = noExist;
-        rev.crashed.push(crashedJSON);
-      }
-    } else {
-      allBinaryHashes.push(researchObject.bin);
-    }
-  }, (j, b) => {
-    rev.noUse = allBinaryHashes.filter((hash) => (allUsedBinaryHashes.indexOf(hash)==-1));
-    rev.statistic = {
-      allJSON: j,
-      allBinary: b,
-      crashedJSONs: rev.crashed.length,
-      noUsedBinary: rev.noUse.length,
+const revisionData = (type) => {
+  return new Promise((resolve, reject) => {
+    const rev = {
+      crashed: [],
     };
-    cb(rev);
+    const allBinaryHashes = [];
+    const allUsedBinaryHashes = [];
+    if (type == 'long') {
+      rev.jsons = {};
+    }
+    
+    const doWithEveryObject = (researchObject) => {
+      if (researchObject.id) {
+        const hash = researchObject.id;
+        const data = Object.assign({}, researchObject);
+        delete data.id;
+        const attachments = getAttachHashes(data);
+        if (type == 'long') {
+          rev.jsons[hash] = attachments;
+        }
+        const noExist = attachments.filter((hash) => {
+          const path = getStoragePath(hash);
+          if (!path) return true;
+          const available = fs.existsSync(path);
+          if (available) allUsedBinaryHashes.push(hash);
+          return !available;
+        });
+        if (noExist.length>0) {
+          const crashedJSON = {};
+          crashedJSON[hash] = noExist;
+          rev.crashed.push(crashedJSON);
+        }
+      } else {
+        allBinaryHashes.push(researchObject.bin);
+      }
+    };
+
+    const researchDataCallback = (jsons, binaries) => {
+      rev.noUse = allBinaryHashes.filter((hash) => (allUsedBinaryHashes.indexOf(hash)==-1));
+      rev.statistic = {
+        allJSON: jsons,
+        allBinary: binaries,
+        crashedJSONs: rev.crashed.length,
+        noUsedBinary: rev.noUse.length,
+      };
+      resolve(rev);
+    };
+
+    researchData(doWithEveryObject, researchDataCallback);
   });
 };
 
@@ -292,5 +305,5 @@ export {
   deleteStorage,
   researchData,
   updateMetadata,
-  revision,
+  revisionData,
 };

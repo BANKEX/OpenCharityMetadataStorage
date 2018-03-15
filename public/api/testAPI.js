@@ -211,14 +211,27 @@ const updateMeta = () => {
   };
 };
 
-const revision = () => {
+const revision = (type) => {
   respREV.innerHTML = '';
   const xhr = new XMLHttpRequest();
-  xhr.open('get', '/api/meta/revision/');
+  xhr.open('get', '/api/meta/revision/'+type);
   xhr.send();
+  xhr.onload = (event) => {
+    respREV.innerHTML = event.target.responseText;
+    console.log(JSON.parse(event.target.responseText));
+  };
+};
+
+const recover = (type) => {
+  respREV.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/meta/recover/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ password: passREC.value}));
   xhr.onload = (event) => {
     respREV.innerHTML = event.target.responseText;
   };
 };
+
 
 getOrgs();

@@ -9,7 +9,8 @@ router
   .post('/postData', meta.postData)
   .post('/delData', meta.delData)
   .post('/updateData', meta.updateData)
-  .get('/revision', meta.revision)
+  .get('/revision/:set', meta.revision)
+  .post('/recover', meta.recover)
   
   .post('/search', search.search)
   .post('/addIndex', search.addIndex)

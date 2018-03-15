@@ -39,13 +39,11 @@ export default {
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='reindex') throw new AppError(401, 100);
     await flush();
-    await close();
-    init(() => {
-      researchData((researchObj) => {
-        if (researchObj.id) addJSONIndex(researchObj);
-      });
+    researchData((researchObj) => {
+      if (researchObj.id) addJSONIndex(researchObj);
+    }, () => {
+      ctx.body = 'Ok';
     });
-    ctx.body = 'Ok';
   },
 
   async flush(ctx) {

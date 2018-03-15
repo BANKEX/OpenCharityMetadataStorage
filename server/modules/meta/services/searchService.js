@@ -5,22 +5,22 @@ import { Readable } from 'stream';
 let index;
 
 const init = (callback) => {
-  searchIndex(
-    {
-      appendOnly: false,
-      indexPath: DIRS.storage + 'index',
-      logLevel: 'error',
-    },
-    (err, newIndex) => {
-      if (!err) {
-        console.log('Index open');
-        index = newIndex;
-        if (callback) callback();
-      } else {
-        console.log(err);
-      }
+  const searchOptions = {
+    appendOnly: false,
+    indexPath: DIRS.storage + 'index',
+    logLevel: 'error',
+  };
+  const start = (err, newIndex) => {
+    if (!err) {
+      console.log('Index open');
+      index = newIndex;
+      if (callback) callback();
+    } else {
+      console.log(err);
     }
-  );
+  };
+  
+  searchIndex(searchOptions, start);
 };
 
 const search = (text) => {

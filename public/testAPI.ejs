@@ -22,7 +22,18 @@
     <div class="row">
       <h3>Revision</h3>
       <div class="col-sm-6">
-        <button class="btn btn-primary" onClick="revision()">Revision</button>
+        <p>
+          <button class="btn btn-primary btn-sm" onClick="revision('lite')">Revision lite</button>
+          <button class="btn btn-primary btn-sm" onClick="revision('long')">Revision long</button>
+          <button class="btn btn-primary btn-sm" onClick="revision('deep')">Revision deep</button>
+        </p>
+        <div class="input-group">
+          <span class="input-group-addon">[recover] after revision</span>
+          <input type="password" class="form-control" id="passREC">
+          <span class="input-group-btn">
+            <button class="btn btn-danger" type="button" onClick="recover()">Send</button>
+          </span>
+        </div>
       </div>
       <div class="col-sm-6 resp" id="respREV"></div>
     </div>
