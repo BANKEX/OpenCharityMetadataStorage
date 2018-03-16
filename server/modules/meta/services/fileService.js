@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileSettings, DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs, getHashFromPath, getAttachHashes } from './helpers.js';
-import { addJSONIndex, delIndex } from './searchService';
+import { addBatchToLine, delIndex } from './searchService';
 import { getMetamapData } from './metamapService';
 
 const deleteFolderRecursive = (path) => {
@@ -147,8 +147,11 @@ const writeFile = (stream, tempPathFile) => {
           let parsed;
           try {
             parsed = JSON.parse(tempFile);
+            console.log(parsed);
             if (parsed.searchDescription==undefined || !parsed.type || !parsed.data) return localError(607);
-            if (typeof parsed.searchDescription!='string' || typeof parsed.type!='string' || typeof parsed.data!='object') return localError(608);
+            if (typeof parsed.searchDescription!='string' || typeof parsed.data!='object') return localError(608);
+            if (isNaN(Number(parsed.type))) return localError(608);
+            if (!Number.isInteger(Number(parsed.type)) || Number(parsed.type)<0) return localError(608);
             if (Object.getOwnPropertyNames(parsed.data).length==0) return localError(609);
             isJSON = true;
           } catch (e) {
@@ -165,7 +168,7 @@ const writeFile = (stream, tempPathFile) => {
             fs.renameSync(tempPathFile, metadataStoragePath);
             if (isJSON) {
               parsed.id = multiHashB58;
-              addJSONIndex(parsed);
+              addBatchToLine(parsed);
             }
             return resolve(multiHashB58);
           } else {

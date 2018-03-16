@@ -111,17 +111,17 @@ const search = () => {
   let searchRequest;
   try {
     searchRequest = JSON.parse(textSI.value);
-    console.log(searchReq.query.AND);
+    console.log(searchRequest.query.AND);
   } catch(e) {
     const searchRequestValue = textSI.value;
-    const typeRequest = selSI.value;
+    const typeRequest = selSI.value+'';
     searchRequest = {
       pageSize: sizeSI.value,
       offset: (pageSI.value-1)*sizeSI.value,
       query: {
         AND: {
           '*' : searchRequestValue.toLowerCase().split(' ').filter(elem => elem!=''),
-          'type': (typeRequest=='') ? undefined : [typeRequest.toLowerCase()]
+          'type': (typeRequest=='') ? undefined : [typeRequest]
         }
       }
     };

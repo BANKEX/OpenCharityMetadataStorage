@@ -3,6 +3,8 @@ import { DIRS } from 'configuration';
 import { Readable } from 'stream';
 
 let index;
+const line = [];
+let readyToIndex = true;
 
 const init = (callback) => {
   const searchOptions = {
@@ -54,25 +56,37 @@ const search = (text) => {
   });
 };
 
-const addJSONIndex = (obj) => {
-  const stream = new Readable( {objectMode: true} );
-  stream.push(obj);
-  stream.push(null);
+const addBatchToLine = (data) => {
+  line.push(data);
+  if (readyToIndex) addJSONIndex();
+};
 
-  stream
-    .pipe(index.defaultPipeline())
-    .pipe(index.add({ objectMode: true }))
-    .on('finish', function() {
-      console.log('Object - indexed');
-    });
+const addJSONIndex = () => {
+  if (line.length) {
+    readyToIndex = false;
+    const stream = new Readable({objectMode: true});
+    let arr = false;
+    if (Array.isArray(line[0])) {
+      arr = true;
+      line[0].forEach((el) => {
+        stream.push(el);
+      });
+    } else {
+      stream.push(line[0]);
+    }
+    stream.push(null);
 
-  /*
-  stream
-    .pipe(index.feed({ objectMode: true }))
-    .on('finish', () => {
-      console.log('Object - indexed');
-    });
-  */
+    stream
+      .pipe(index.defaultPipeline())
+      .pipe(index.add({objectMode: true}))
+      .on('finish', () => {
+        console.log((arr) ? line[0].length+' array elements indexed' : 'Object - indexed');
+        line.shift();
+        addJSONIndex();
+      });
+  } else {
+    readyToIndex = true;
+  }
 };
 
 const close = () => {
@@ -97,7 +111,7 @@ const delIndex = (id) => {
       });
     setTimeout(()=>{
       resolve(false);
-    }, 500);
+    }, 1000);
   });
 };
 
@@ -119,7 +133,7 @@ const getIndex = (id) => {
       });
     setTimeout(()=>{
       resolve(false);
-    }, 500);
+    }, 1000);
   });
 };
 
@@ -128,7 +142,7 @@ init();
 export {
   init,
   search,
-  addJSONIndex,
+  addBatchToLine,
   close,
   flush,
   delIndex,

@@ -55,7 +55,11 @@
     <div class="row">
       <h3>Upload metadata</h3>
       <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="type" id="typeUL" value="charityEvent">
+        <div class="input-group">
+          <span class="input-group-addon" onmouseover="tipUL.style.display='block'" onmouseleave="tipUL.style.display='none'">type</span>
+          <input class="form-control" type="number" id="typeUL" min="0" value="1" step="1">
+        </div>
+        <div id="tipUL" style="display: none">0-organization, 1-charityEvent, 2-incomingDonation</div>
         <textarea class="form-control" placeholder="description" id="descriptionUL" rows="4"></textarea>
         <div class="col-sm-2">
           image
@@ -111,8 +115,9 @@
       <div class="col-sm-6">
         <select id="selSI">
           <option value="" selected>other...</option>
-          <option value="charityEvent">charityEvent</option>
-          <option value="incomingDonation">incomingDonation</option>
+          <option value="0">organization</option>
+          <option value="1">charityEvent</option>
+          <option value="2">incomingDonation</option>
         </select>
         <input class="form-control" type="text" placeholder="text" id="textSI" value="*">
         <div class="input-group">
