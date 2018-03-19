@@ -46,7 +46,7 @@ const upload = async () => {
       const imageHash = await sendBlobsToServer(imageBlob);
       respObj.data.image = {
         name: imageBlob[0].name,
-        extension: imageBlob[0].type,
+        type: imageBlob[0].type,
         size: imageBlob[0].size,
         storageHash: imageHash[0]
       }
@@ -57,7 +57,7 @@ const upload = async () => {
       respObj.data.attachments = attachHashes.map((hash, index) => {
         return {
           name: attachBlobs[index].name,
-          extension: attachBlobs[index].type,
+          type: attachBlobs[index].type,
           size: attachBlobs[index].size,
           storageHash: hash
         }

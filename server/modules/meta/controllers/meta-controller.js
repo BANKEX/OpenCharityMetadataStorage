@@ -34,8 +34,8 @@ export default {
   
   async revision(ctx) {
     const REVISION_TYPES = ['lite', 'long', 'deep'];
-    if (REVISION_TYPES.indexOf(ctx.params.set)==-1) throw new AppError(406, 600);
-    ctx.body = await revisionData(ctx.params.set);
+    if (REVISION_TYPES.indexOf(ctx.params.type)==-1) throw new AppError(406, 600);
+    ctx.body = await revisionData(ctx.params.type);
   },
 
   async recover(ctx) {

@@ -83,60 +83,68 @@ const sendBlobsToServer = (blobs) => {
 При успешном сохранении метаинформации возвращает массив hashes.
 
 ### Структура метаданных
-Данные JSON индексируются для поиска и хранятся, например, в следующем виде:
+Данные JSON индексируются для поиска и хранятся в следующем виде:
 ```
 {
-    "eventName":"название пакета  документов",
-    "eventDetails":"описание пакета документов",
-    "images":[
-        {
-        "hash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX",
-        "name":"19itg8t.JPG",
-        "type":"image/jpeg",
-        "size":39965
-        },{
-        "hash":"QmPB8SccRwMxFzFMdC1JVwnWku3uAUHPpvDvCLNrvUACb1",
-        "name":"Стор1.pdf",
-        "type":"application/pdf",
-        "size":3910
-        }
-    ]
+    "type":1,
+    "searchDescription":"",
+    "data":{
+        "title":"Test 1903",
+        "description":"talk hide ride",
+        "image":{
+            "name":"19itg8t.JPG",
+            "type":"image/jpeg",
+            "size":39965,
+            "storageHash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX"
+        },
+        "attachments": [{аналогично image}]
+    }
 }
 ```
-images.hash указывает на binary-данные.
+
+### POST /api/meta/delData
+Удаляет метаданные по hash.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательное поле hash.<br/>
+
+### POST /api/meta/updateData
+Доступно только для JSON-метаданных.<br/>
+Удаляет JSON oldHash, учитывая перекресные ссылки с JSON newHash, удаляет неиспользуемые бинарники, снимает индексацию с oldHash.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательные поля { oldHash, newHash }.<br/>
+
+### GET /api/meta/revision/:type
+Производит ревизию метаданных.<br/>
+Возвращает объект с полями в зависимости от типа запроса.<br/>
+type: ['lite', 'long', 'deep']<br/>
+    1. lite - простая инвентаризация.
+        * missedBinary - список бинарников, на которые ссылают JSON, но их нет
+        * missedJSON - список JSON, на которые ссылается DB Metamap, но их нет
+        * unusedBinary - список бинарников, которые занимают дисковое пространство, но не используются ни одним JSON
+        * unusedJSON - список JSON, не упомянутых в DB Metamap
+        * statistic - статистические данные
+    2. long - тоже самое, что lite, но добавляется еще 1 поле:
+        * storeJSON - это объект {hashJSON: [hashBinary]} - информация о всех хранимых данных.
+    3. deep - тоже самое, что lite, но добавляется еще 1 поле:
+        * wrongMultiHash - список hashes, имя которых не соответствует содержимому.
+Обязательное поле hash.<br/>
+
+### POST /api/meta/recover
+Вносит исправления в хранилище метаданных на основаниии ревизии.<br/>
+Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
+Обязательные поля password и type.<br/>
+type: ['wrongMultiHash', 'unusedJSON', 'unusedBinary']
+    1. wrongMultiHash - удаляет все файлы hash, которых не соответствует их содержимому.
+    2. unusedJSON - удаляет все JSON-файлы не упомянутые в DB Metamap
+    3. unusedBinary - удаляет все неиспользуемые бинарники
+Для полной отчиски хранилища необходимо запустить последовательно данную функцию 3 раза по порядку.
+
 
 ### POST /api/meta/search
 Ищет запрос в проиндексированных данных.<br/>
 Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
-Запрос может быть двух видов:
-1. Обычный текстовый запрос. Например, строка 'космос текст' найдет все документы где в теле упоминаются оба этих слова.
-2. Запрос JSON по правилам библиотеки search-index (https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md)
+Принимает запрос по правилам библиотеки search-index (https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md)<br/>
+Возвращает массив объектов вида: `{ type, searchDescription, data, id }`<br/>
+Если id начинается с 'Qm...', то это объект метаданных, если с '0x...', то это DAPP-объект.<br/>
 
-Возвращает объект вида:
-```
-    {multiHash: {document}, multiHash: {document}, ...}
-```
-multiHash актуален только для метаданных. По нему можно найти соответствующий документ на метасервере.<br/>
-Пример:
-```
-{
-    "QmfJUuV34ZqBBbfQ29uj6Fu9MLzWsCLKkDJLRk6GSWWEVQ":{
-        "title":"Космос близко",
-        "description":"Космос там где ты",
-        "attachment":{
-            "hash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX",
-            "name":"19itg8t.JPG",
-            "type":"image/jpeg",
-            "size":39965}
-    },
-    "Qmdw8cYKmUDxmeNLjZBjukazaDEQs25ZyVTRfuQ8mjcjGL":{
-        "name":"first CE",
-        "payed":"0",
-        "target":"1000",
-        "raised":"0",
-        "tags":"0x30",
-        "address":"0x4fefeb18f51d658ab7bf71f7613196f9401af87f",
-        "date":"2018-2-18 13:55:15"
-    }
-}
-```
+
