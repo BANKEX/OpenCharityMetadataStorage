@@ -166,30 +166,6 @@ const drop = () => {
   };
 };
 
-const getOrgs = () => {
-  listOrgs.value = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('get', '/api/settings/organizations/');
-  xhr.send();
-  xhr.onload = (event) => {
-    listOrgs.value = event.target.responseText;
-  };
-};
-
-const editListOrgs = () => {
-  respOrgs.innerHTML = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('post', '/api/settings/organizations/');
-  xhr.setRequestHeader('Content-type', 'application/json');
-  xhr.send(JSON.stringify({
-    password: passOrgs.value,
-    orgs: listOrgs.value
-  }));
-  xhr.onload = (event) => {
-    respOrgs.innerHTML = event.target.responseText;
-  };
-};
-
 const deleteMeta = () => {
   if (confirm('Are you sure?')) {
     respDel.innerHTML = '';
@@ -238,5 +214,3 @@ const recover = (type) => {
     respREC.innerHTML = event.target.responseText;
   };
 };
-
-getOrgs();

@@ -117,16 +117,16 @@ const sendBlobsToServer = (blobs) => {
 Производит ревизию метаданных.<br/>
 Возвращает объект с полями в зависимости от типа запроса.<br/>
 type: ['lite', 'long', 'deep']<br/>
-    1. lite - простая инвентаризация.
-        * missedBinary - список бинарников, на которые ссылают JSON, но их нет
-        * missedJSON - список JSON, на которые ссылается DB Metamap, но их нет
-        * unusedBinary - список бинарников, которые занимают дисковое пространство, но не используются ни одним JSON
-        * unusedJSON - список JSON, не упомянутых в DB Metamap
-        * statistic - статистические данные
-    2. long - тоже самое, что lite, но добавляется еще 1 поле:
-        * storeJSON - это объект {hashJSON: [hashBinary]} - информация о всех хранимых данных.
-    3. deep - тоже самое, что lite, но добавляется еще 1 поле:
-        * wrongMultiHash - список hashes, имя которых не соответствует содержимому.
+1. lite - простая инвентаризация.
+    * missedBinary - список бинарников, на которые ссылают JSON, но их нет
+    * missedJSON - список JSON, на которые ссылается DB Metamap, но их нет
+    * unusedBinary - список бинарников, которые занимают дисковое пространство, но не используются ни одним JSON
+    * unusedJSON - список JSON, не упомянутых в DB Metamap
+    * statistic - статистические данные
+2. long - тоже самое, что lite, но добавляется еще 1 поле:
+    * storeJSON - это объект {hashJSON: [hashBinary]} - информация о всех хранимых данных.
+3. deep - тоже самое, что lite, но добавляется еще 1 поле:
+    * wrongMultiHash - список hashes, имя которых не соответствует содержимому.
 Обязательное поле hash.<br/>
 
 ### POST /api/meta/recover
@@ -134,9 +134,9 @@ type: ['lite', 'long', 'deep']<br/>
 Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
 Обязательные поля password и type.<br/>
 type: ['wrongMultiHash', 'unusedJSON', 'unusedBinary']
-    1. wrongMultiHash - удаляет все файлы hash, которых не соответствует их содержимому.
-    2. unusedJSON - удаляет все JSON-файлы не упомянутые в DB Metamap
-    3. unusedBinary - удаляет все неиспользуемые бинарники
+1. wrongMultiHash - удаляет все файлы hash, которых не соответствует их содержимому.
+2. unusedJSON - удаляет все JSON-файлы не упомянутые в DB Metamap
+3. unusedBinary - удаляет все неиспользуемые бинарники
 Для полной отчиски хранилища необходимо запустить последовательно данную функцию 3 раза по порядку.
 
 
