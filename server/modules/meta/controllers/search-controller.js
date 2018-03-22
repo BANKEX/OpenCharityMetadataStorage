@@ -1,7 +1,10 @@
 import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { deleteStorage, researchData } from '../services/fileService';
+import { deleteStorage, researchData, revisionData } from '../services/fileService';
 import { init, search, addBatchToLine, close, flush, delIndex, getIndex } from '../services/searchService';
+import { initDonators } from '../services/donatorsCabService';
+import { getStoragePath } from '../services/helpers';
+import fs from 'fs';
 
 const MAXBATCH=20;
 
@@ -41,6 +44,19 @@ export default {
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='reindex') throw new AppError(401, 100);
     await flush();
+    await initDonators();
+    console.log('---------------------');
+    const revision = await revisionData('long');
+    const storedJSONs = Object.getOwnPropertyNames(revision.storeJSON);
+    const usedJSONs = storedJSONs.filter((el) => (revision.unusedJSON.indexOf(el)==-1));
+    usedJSONs.forEach((hash) => {
+      const path = getStoragePath(hash);
+      const file = fs.readFileSync(path);
+      const obj = JSON.parse(file);
+      obj.id = hash;
+      addBatchToLine([obj]);
+    });
+    /*
     let batch = [];
     researchData((researchObj) => {
       if (researchObj.id) {
@@ -50,10 +66,11 @@ export default {
           batch=[];
         }
       }
-    }, () => {
+    }, async () => {
       addBatchToLine(batch);
-      ctx.body = 'Ok';
     });
+    */
+    ctx.body = 'Ok';
   },
 
   async flush(ctx) {

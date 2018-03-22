@@ -6,7 +6,7 @@ import { fileSettings, DIRS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { isB58, getStoragePath, checkFile, makeStorageDirs, getHashFromPath, getAttachHashes } from './helpers.js';
 import { addBatchToLine, delIndex } from './searchService';
-import { getMetamapData } from './metamapService';
+import { getMetamapData } from './donatorsCabService';
 
 const deleteFolderRecursive = (path) => {
   if (fs.existsSync(path)) {
@@ -168,7 +168,7 @@ const writeFile = (stream, tempPathFile) => {
             fs.renameSync(tempPathFile, metadataStoragePath);
             if (isJSON) {
               parsed.id = multiHashB58;
-              addBatchToLine(parsed);
+              addBatchToLine([parsed]);
             }
             return resolve(multiHashB58);
           } else {
@@ -213,9 +213,7 @@ const researchData = (func, callback) => {
       });
     }
   };
-
-  reindexBinary = 0;
-  reindexJSON = 0;
+  
   getFilePathRecursive(DIRS.storage+'data/', func);
   console.log('reindexJSON='+reindexJSON);
   console.log('reindexBinary='+reindexBinary);

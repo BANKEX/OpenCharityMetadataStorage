@@ -33,7 +33,6 @@ const search = (text) => {
     console.log('it gives ' + count + ' results');
   });
   return new Promise((resolve, reject) => {
-    // const searchResult = {};
     const searchResult = [];
     index.search(text)
       .on('error', (err) => {
@@ -41,13 +40,7 @@ const search = (text) => {
         reject(err);
       })
       .on('data', (data) => {
-        /*
-        const dataHashHex = crypto.createHash('sha256').update(JSON.stringify(data.document)).digest('hex');
-        const dataHashBuffer = multihash.fromHexString(dataHashHex);
-        const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
-        const multiHashB58 = multihash.toB58String(multiHashBuffer);
-        searchResult[multiHashB58] = data.document;
-        */
+        console.log(data);
         searchResult.push(data.document);
       })
       .on('end', () => {
@@ -57,30 +50,26 @@ const search = (text) => {
 };
 
 const addBatchToLine = (data) => {
-  line.push(data);
-  if (readyToIndex) addJSONIndex();
+  if (data.length) {
+    line.push(data);
+    if (readyToIndex) addJSONIndex();
+  }
 };
 
 const addJSONIndex = () => {
   if (line.length) {
     readyToIndex = false;
     const stream = new Readable({objectMode: true});
-    let arr = false;
-    if (Array.isArray(line[0])) {
-      arr = true;
-      line[0].forEach((el) => {
-        stream.push(el);
-      });
-    } else {
-      stream.push(line[0]);
-    }
+    line[0].forEach((el) => {
+      stream.push(el);
+    });
     stream.push(null);
 
     stream
       .pipe(index.defaultPipeline())
       .pipe(index.add({objectMode: true}))
-      .on('finish', () => {
-        console.log((arr) ? line[0].length+' array elements indexed' : 'Object - indexed');
+      .on('finish', async () => {
+        console.log(line[0].length+' array elements indexed');
         line.shift();
         addJSONIndex();
       });

@@ -12,13 +12,21 @@ const getMetamapData = async (data) => {
     method: 'GET',
     uri: CAB + '/api/db/getMetamap',
   };
-  try {
-    return JSON.parse(await rp(options));
-  } catch (e) {
-    console.error(e.message);
-  }
+  return JSON.parse(await rp(options));
 };
+
+const initDonators = async () => {
+  const options = {
+    method: 'POST',
+    uri: CAB + '/api/db/dropOrgs',
+    body: JSON.stringify({password: 'organ'}),
+    headers: {'Content-Type': 'application/json'},
+  };
+  await rp.post(options);
+};
+
 
 export {
   getMetamapData,
+  initDonators,
 };
