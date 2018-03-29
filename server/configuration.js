@@ -4,6 +4,7 @@ const ADDRESS = config.get('address');
 const DIRS = config.get('dirs');
 const CAB = config.get('cabinet');
 const fileSettings = config.get('fileSettings');
+const CORS = config.get('cors');
 
 
 export {
@@ -11,4 +12,5 @@ export {
   DIRS,
   CAB,
   fileSettings,
+  CORS,
 };

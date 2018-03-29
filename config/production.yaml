@@ -1,9 +1,14 @@
 env: production
 address:
   internal: 'http://0.0.0.0:8080'
-  external: 'https://opencharity.bankex.team'
+  external: 'https://meta.bankex.team'
 cabinet: 'https://donatorscab.bankex.team'
+mongoURI: 'mongodb://meta:testpass@meta_mongodb:27017/meta'
 dirs:
   main: '/oc_meta/'
   public: '/oc_meta/public/'
   storage: '/oc_meta/storage/'
+cors:
+  - 'https://donatorscab.bankex.team'
+  - 'https://opencharity.bankex.team'
+  - 'https://meta.bankex.team'

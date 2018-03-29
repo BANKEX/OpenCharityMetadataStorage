@@ -1,9 +1,17 @@
 env: staging
 address:
   internal: 'http://0.0.0.0:8080'
-  external: 'https://opencharity.staging.bankex.team'
+  external: 'https://meta.staging.bankex.team'
 cabinet: 'https://donatorscab.staging.bankex.team'
+mongoURI: 'mongodb://meta:testpass@meta_mongodb:27017/meta'
 dirs:
   main: '/oc_meta/'
   public: '/oc_meta/public/'
   storage: '/oc_meta/storage/'
+cors:
+  - 'https://donatorscab.staging.bankex.team'
+  - 'https://opencharity.staging.bankex.team'
+  - 'https://meta.staging.bankex.team'
+  - 'http://127.0.0.1:8080'
+  - 'http://127.0.0.1:8081'
+  - 'http://127.0.0.1:8082'
