@@ -42,6 +42,7 @@ release:
   stage: release
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - sed -i '3i\ENV MONGODB_STAGE_PASS '$MONGODB_STAGE_PASS'\' docker/Dockerfile ; sed -i '3i\ENV MONGODB_PROD_PASS '$MONGODB_PROD_PASS'\' docker/Dockerfile
   script:
     - docker build -q -f docker/Dockerfile -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
@@ -63,12 +64,15 @@ deploy_stage:
     - echo "$DO_DOCKER_CERT_STAGE" > $DOCKER_CERT_PATH/cert.pem
     - echo "$DO_DOCKER_KEY_STAGE" > $DOCKER_CERT_PATH/key.pem
     - echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
+    - echo "MONGODB_ADMIN_PASS=$MONGODB_ADMIN_PASS" >> .env; echo "MONGODB_STAGE_PASS=$MONGODB_STAGE_PASS" >> .env
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker-compose -f docker/docker-compose.yml down
-    - docker rmi $IMAGE || echo "image not exist"
-    - docker pull $IMAGE
-    - docker-compose -f docker/docker-compose.yml up -d
+    - docker rmi $CI_REGISTRY_IMAGE || echo "image not exist"
+    - docker pull $CI_REGISTRY_IMAGE
+    - docker-compose -f docker/docker-compose.yml up -d meta_mongodb
+    - sleep 15
+    - docker-compose -f docker/docker-compose.yml up -d oc_meta
   environment:
     name: staging
     url: https://meta.staging.bankex.team
@@ -108,13 +112,16 @@ deploy_prod:
     - echo "$DO_DOCKER_CA_PROD" > $DOCKER_CERT_PATH/ca.pem
     - echo "$DO_DOCKER_CERT_PROD" > $DOCKER_CERT_PATH/cert.pem
     - echo "$DO_DOCKER_KEY_PROD" > $DOCKER_CERT_PATH/key.pem
-    - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
+    - echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
+    - echo "MONGODB_ADMIN_PASS=$MONGODB_ADMIN_PASS" >> .env; echo "MONGODB_PROD_PASS=$MONGODB_PROD_PASS" >> .env
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker-compose -f docker/docker-compose-prod.yml down
-    - docker rmi $IMAGE || echo "image not exist"
-    - docker pull $IMAGE
-    - docker-compose -f docker/docker-compose-prod.yml up -d
+    - docker rmi $CI_REGISTRY_IMAGE || echo "image not exist"
+    - docker pull $CI_REGISTRY_IMAGE
+    - docker-compose -f docker/docker-compose-prod.yml up -d meta_mongodb
+    - sleep 15
+    - docker-compose -f docker/docker-compose-prod.yml up -d oc_meta
   environment:
     name: production
     url: https://meta.bankex.team
