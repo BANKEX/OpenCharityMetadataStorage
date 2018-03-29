@@ -1,6 +1,3 @@
-variables:
-  IMAGE: bankexlabs/$CI_PROJECT_NAME:release
-
 stages:
   - setup
   - build-node
@@ -44,10 +41,10 @@ release:
   image: docker:latest
   stage: release
   before_script:
-    - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - docker build -q -f docker/Dockerfile -t ${IMAGE} .
-    - docker push ${IMAGE}
+    - docker build -q -f docker/Dockerfile -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
 
 deploy_stage:
   stage: deploy-stage
@@ -65,9 +62,9 @@ deploy_stage:
     - echo "$DO_DOCKER_CA_STAGE" > $DOCKER_CERT_PATH/ca.pem
     - echo "$DO_DOCKER_CERT_STAGE" > $DOCKER_CERT_PATH/cert.pem
     - echo "$DO_DOCKER_KEY_STAGE" > $DOCKER_CERT_PATH/key.pem
-    - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
-    - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
+    - echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker-compose -f docker/docker-compose.yml down
     - docker rmi $IMAGE || echo "image not exist"
     - docker pull $IMAGE
@@ -111,9 +108,9 @@ deploy_prod:
     - echo "$DO_DOCKER_CA_PROD" > $DOCKER_CERT_PATH/ca.pem
     - echo "$DO_DOCKER_CERT_PROD" > $DOCKER_CERT_PATH/cert.pem
     - echo "$DO_DOCKER_KEY_PROD" > $DOCKER_CERT_PATH/key.pem
-    - docker login -u $DOCKER_USER -p $DOCKER_TOKEN
     - echo "IMAGE=$IMAGE" > .env ; echo "NODE_ENV=$NODE_ENV" >> .env; echo "NODE_PATH=$NODE_PATH" >> .env; echo "VIRTUAL_HOST=$SERVERNAME" >> .env ; echo "LETSENCRYPT_HOST=$SERVERNAME" >> .env; echo "LETSENCRYPT_EMAIL=$EMAIL" >> .env
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker-compose -f docker/docker-compose-prod.yml down
     - docker rmi $IMAGE || echo "image not exist"
     - docker pull $IMAGE

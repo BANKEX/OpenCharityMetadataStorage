@@ -5,7 +5,7 @@ volumes:
 
 services:
   oc_meta:
-    image: ${IMAGE}
+    image: $CI_REGISTRY_IMAGE
     container_name: oc_meta
     restart: always
     expose:
