@@ -2,25 +2,19 @@ import multihash from 'multihashes';
 import crypto from 'crypto';
 import FormData from 'form-data';
 import fs from 'fs';
-import { fileSettings, DIRS } from 'configuration';
+import { fileSettings, DIRS, INTERVALS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { isB58, getStoragePath, checkFile, makeStorageDirs, getHashFromPath, getAttachHashes } from './helpers.js';
-import { addBatchToLine, delIndex } from './searchService';
-import { getMetamapData } from './donatorsCabService';
+import io from '../io';
 
-const deleteFolderRecursive = (path) => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file) => {
-      const curPath = path + '/' + file;
-      if (fs.lstatSync(curPath).isDirectory()) {
-        deleteFolderRecursive(curPath);
-      } else {
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
-};
+import { 
+  isB58, 
+  getStoragePath, 
+  checkFile, 
+  makeStorageDirs,
+  getAttachHashes, 
+  deleteFolderRecursive, 
+  researchData,
+} from './helpers.js';
 
 const readFiles = (stream, multiHashRequest) => {
   if (multiHashRequest.length==1) {
@@ -166,10 +160,12 @@ const writeFile = (stream, tempPathFile) => {
           if (!makeStorageDirs(metadataStoragePath)) return localError(605);
           if (!fs.existsSync(metadataStoragePath)) {
             fs.renameSync(tempPathFile, metadataStoragePath);
+            /*
             if (isJSON) {
               parsed.id = multiHashB58;
-              addBatchToLine([parsed]);
+              io.addToIndex([parsed]);
             }
+            */
             return resolve(multiHashB58);
           } else {
             fs.unlinkSync(tempPathFile);
@@ -180,51 +176,14 @@ const writeFile = (stream, tempPathFile) => {
   });
 };
 
-const deleteStorage = () => {
-  deleteFolderRecursive(DIRS.storage + 'temp/');
-  deleteFolderRecursive(DIRS.storage + 'data/');
-  deleteFolderRecursive(DIRS.storage + 'index/');
-  fs.mkdirSync(DIRS.storage + 'temp/');
-  fs.mkdirSync(DIRS.storage + 'data/');
-};
-
-const researchData = (func, callback) => {
-  let reindexBinary = 0;
-  let reindexJSON = 0;
-
-  const getFilePathRecursive = (path, callback) => {
-    if (fs.existsSync(path)) {
-      fs.readdirSync(path).forEach((file) => {
-        const curPath = path + '/' + file;
-        if (fs.lstatSync(curPath).isDirectory()) {
-          getFilePathRecursive(curPath, callback);
-        } else {
-          try {
-            const tempFile = fs.readFileSync(curPath);
-            const obj = JSON.parse(tempFile);
-            obj.id = getHashFromPath(curPath);
-            reindexJSON++;
-            callback(obj);
-          } catch (e) {
-            reindexBinary++;
-            callback({ bin: getHashFromPath(curPath) });
-          }
-        }
-      });
-    }
-  };
-  
-  getFilePathRecursive(DIRS.storage+'data/', func);
-  console.log('reindexJSON='+reindexJSON);
-  console.log('reindexBinary='+reindexBinary);
-  if (callback) callback(reindexJSON, reindexBinary);
-};
-
 const deleteFile = (hash) => {
   const path = checkFile(hash);
   if (!path) throw new AppError(409, 600);
-  fs.unlinkSync(path);
-  delIndex(hash);
+  const stat = fs.statSync(path);
+  if (stat.ctime < Date.now() - INTERVALS.fs.deleteFileAfter) {
+    fs.unlinkSync(path);
+    // io.delFromIndex(hash);
+  }
 };
 
 const updateMetadata = (oldHash, newHash) => {
@@ -264,10 +223,10 @@ const revisionData = (type) => {
     const allBinaryHashes = [];
     const allUsedBinaryHashes = [];
 
-    const db = await getMetamapData();
+    const db = await io.getFromMetamap({});
     const metamapJSON = db.map((elem) => (elem.hash));
     rev.missedJSON = metamapJSON;
-    
+
     const doWithEveryObject = (researchObject) => {
       if (researchObject.id) {
         const hash = researchObject.id;
@@ -325,12 +284,21 @@ const revisionData = (type) => {
   });
 };
 
+const deleteStorage = () => {
+  deleteFolderRecursive(DIRS.storage + 'temp/');
+  deleteFolderRecursive(DIRS.storage + 'data/');
+  deleteFolderRecursive(DIRS.storage + 'index/');
+  fs.mkdirSync(DIRS.storage + 'temp/');
+  fs.mkdirSync(DIRS.storage + 'data/');
+};
+
 export {
   writeFile,
   readFiles,
   deleteFile,
-  deleteStorage,
-  researchData,
   updateMetadata,
   revisionData,
+  deleteStorage,
+  getStoragePath,
+  checkFile,
 };

@@ -103,69 +103,6 @@ const download = () => {
   };
 };
 
-const search = () => {
-  respSI.innerHTML = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('post', '/api/meta/search/');
-  xhr.setRequestHeader('Content-type', 'application/json');
-  let searchRequest;
-  try {
-    searchRequest = JSON.parse(textSI.value);
-    console.log(searchRequest.query.AND);
-  } catch(e) {
-    const searchRequestValue = textSI.value;
-    const typeRequest = selSI.value+'';
-    searchRequest = {
-      pageSize: sizeSI.value,
-      offset: (pageSI.value-1)*sizeSI.value,
-      query: {
-        AND: {
-          '*' : searchRequestValue.toLowerCase().split(' ').filter(elem => elem!=''),
-          'type': (typeRequest=='') ? undefined : [typeRequest]
-        }
-      }
-    };
-  }
-  xhr.send(JSON.stringify(searchRequest));
-  xhr.onload = (event) => {
-    try {
-      const resp = JSON.parse(event.target.responseText);
-      console.log(`${resp.length} docs found`);
-      if (resp.length>0) {
-        respSI.innerHTML = resp.map((elem) => {
-          return '<div>' + JSON.stringify(elem) + '</div>';
-        });
-      } else {
-        respSI.innerHTML = 'Nothing ...';
-      }
-    } catch (e){
-      respSI.innerHTML = event.target.responseText;
-    }
-  };
-};
-
-const reindex = () => {
-  respRE.innerHTML = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('post', '/api/meta/reindex/');
-  xhr.setRequestHeader('Content-type', 'application/json');
-  xhr.send(JSON.stringify({ password: passRE.value}));
-  xhr.onload = (event) => {
-    respRE.innerHTML = event.target.responseText;
-  };
-};
-
-const drop = () => {
-  respDrop.innerHTML = '';
-  const xhr = new XMLHttpRequest();
-  xhr.open('post', '/api/meta/drop/');
-  xhr.setRequestHeader('Content-type', 'application/json');
-  xhr.send(JSON.stringify({ password: passDrop.value}));
-  xhr.onload = (event) => {
-    respDrop.innerHTML = event.target.responseText;
-  };
-};
-
 const deleteMeta = () => {
   if (confirm('Are you sure?')) {
     respDel.innerHTML = '';
@@ -212,5 +149,71 @@ const recover = (type) => {
   xhr.send(JSON.stringify({ password: passREC.value, type: type }));
   xhr.onload = (event) => {
     respREC.innerHTML = event.target.responseText;
+  };
+};
+
+
+
+
+const search = () => {
+  respSI.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/search/search/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  let searchRequest;
+  try {
+    searchRequest = JSON.parse(textSI.value);
+    console.log(searchRequest.query.AND);
+  } catch(e) {
+    const searchRequestValue = textSI.value;
+    const typeRequest = selSI.value+'';
+    searchRequest = {
+      pageSize: sizeSI.value,
+      offset: (pageSI.value-1)*sizeSI.value,
+      query: {
+        AND: {
+          '*' : searchRequestValue.toLowerCase().split(' ').filter(elem => elem!=''),
+          'type': (typeRequest=='') ? undefined : [typeRequest]
+        }
+      }
+    };
+  }
+  xhr.send(JSON.stringify(searchRequest));
+  xhr.onload = (event) => {
+    try {
+      const resp = JSON.parse(event.target.responseText);
+      console.log(`${resp.length} docs found`);
+      if (resp.length>0) {
+        respSI.innerHTML = resp.map((elem) => {
+          return '<div>' + JSON.stringify(elem) + '</div>';
+        });
+      } else {
+        respSI.innerHTML = 'Nothing ...';
+      }
+    } catch (e){
+      respSI.innerHTML = event.target.responseText;
+    }
+  };
+};
+
+const reindex = () => {
+  respRE.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/search/reindex/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ password: passRE.value}));
+  xhr.onload = (event) => {
+    respRE.innerHTML = event.target.responseText;
+  };
+};
+
+const drop = () => {
+  respDrop.innerHTML = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('post', '/api/search/drop/');
+  xhr.setRequestHeader('Content-type', 'application/json');
+  xhr.send(JSON.stringify({ password: passDrop.value}));
+  xhr.onload = (event) => {
+    respDrop.innerHTML = event.target.responseText;
   };
 };

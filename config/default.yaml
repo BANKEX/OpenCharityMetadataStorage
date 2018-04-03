@@ -4,3 +4,10 @@ fileSettings:
   - 5
   - 5
   - 6
+intervals:
+  dapp:
+    reconnection: 10000
+    checkConnection: 120000
+    refreshInitList: 120000
+  fs:
+    deleteFileAfter: 86400000

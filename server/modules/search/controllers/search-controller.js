@@ -1,12 +1,9 @@
 import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { deleteStorage, researchData, revisionData } from '../services/fileService';
-import { init, search, addBatchToLine, close, flush, delIndex, getIndex } from '../services/searchService';
-import { initDonators } from '../services/donatorsCabService';
-import { getStoragePath } from '../services/helpers';
+import { init, search, addBatchToLine, close, flush } from '../services/search-service';
+import { Metamap } from '../index';
 import fs from 'fs';
-
-const MAXBATCH=20;
+import io from '../io';
 
 export default {
   async search(ctx) {
@@ -29,55 +26,44 @@ export default {
       if (!Number.isInteger(type) || type<0) throw new AppError(406, 620);
     }
     searchRequest.query.AND['*'] = filteredStar;
-    ctx.body = await search(searchRequest);
-  },
 
-  async addIndex(ctx) {
-    if (ctx.request.header['content-type']!='application/json' &&
-      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
-    addBatchToLine(ctx.request.body);
-    ctx.body = 'Ok';
-  },
+    const documents = await search(searchRequest);
+    
+    const addresses = [];
+    await Promise.all(documents.map(async (doc) => {
+      let docAddress = doc.id;
+      if (doc.id.indexOf('Qm')==0) {
+        const metamap = await Metamap.findOne({ hash: doc.id });
+        docAddress = (metamap) ? metamap.address : false;
+      }
 
+      if (docAddress) {
+        if (addresses.indexOf(docAddress) == -1) addresses.push(docAddress);
+      } else {
+        console.log('No address');
+      }
+      return true;
+    }));
+  
+    ctx.body = addresses;
+  },
+  
   async reindex(ctx) {
     if (ctx.request.header['content-type']!='application/json' &&
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='reindex') throw new AppError(401, 100);
     await flush();
-    await initDonators();
     console.log('---------------------');
-    const revision = await revisionData('long');
+    const revision = await io.revisionMetadata('long');
     const storedJSONs = Object.getOwnPropertyNames(revision.storeJSON);
     const usedJSONs = storedJSONs.filter((el) => (revision.unusedJSON.indexOf(el)==-1));
     usedJSONs.forEach((hash) => {
-      const path = getStoragePath(hash);
+      const path = io.getMetadataStoragePath(hash);
       const file = fs.readFileSync(path);
       const obj = JSON.parse(file);
       obj.id = hash;
       addBatchToLine([obj]);
     });
-    /*
-    let batch = [];
-    researchData((researchObj) => {
-      if (researchObj.id) {
-        batch.push(researchObj);
-        if (batch.length==MAXBATCH) {
-          addBatchToLine(batch);
-          batch=[];
-        }
-      }
-    }, async () => {
-      addBatchToLine(batch);
-    });
-    */
-    ctx.body = 'Ok';
-  },
-
-  async flush(ctx) {
-    if (ctx.request.header['content-type']!='application/json' &&
-      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
-    if (ctx.request.body.password!='flush') throw new AppError(401, 100);
-    await flush();
     ctx.body = 'Ok';
   },
 
@@ -86,20 +72,9 @@ export default {
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='drop') throw new AppError(401, 100);
     await close();
-    deleteStorage();
-    init(false);
+    io.deleteMetadataStorage();
+    await init();
     ctx.body = 'Ok';
   },
 
-  async delIndex(ctx) {
-    if (ctx.request.header['content-type']!='application/json' &&
-      ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
-    if (!ctx.request.body.del) throw new AppError(406, 601);
-    if (!Array.isArray(ctx.request.body.del)) throw new AppError(406, 600);
-    ctx.body = await delIndex(ctx.request.body.del);
-  },
-
-  async getid(ctx) {
-    ctx.body = await getIndex(ctx.params.id);
-  },
 };

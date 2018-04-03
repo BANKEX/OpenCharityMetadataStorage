@@ -2,6 +2,9 @@ import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { readFiles, writeFile, deleteFile, updateMetadata, revisionData } from '../services/fileService';
 
+const REVISION_TYPES = ['lite', 'long', 'deep'];
+const RECOVER_TYPES = ['wrongMultiHash', 'unusedJSON', 'unusedBinary'];
+
 export default {
   async getData(ctx) {
     await readFiles(ctx.res, ctx.params.hash.split(';'));
@@ -33,7 +36,6 @@ export default {
   },
   
   async revision(ctx) {
-    const REVISION_TYPES = ['lite', 'long', 'deep'];
     if (REVISION_TYPES.indexOf(ctx.params.type)==-1) throw new AppError(406, 600);
     ctx.body = await revisionData(ctx.params.type);
   },
@@ -44,11 +46,9 @@ export default {
     if (ctx.request.body.password!='recover') throw new AppError(401, 100);
     const type = ctx.request.body.type; 
     if (!type) throw new AppError(406, 601);
-    const RECOVER_TYPES = ['wrongMultiHash', 'unusedJSON', 'unusedBinary'];
     if (RECOVER_TYPES.indexOf(type)==-1) throw new AppError(406, 600);
     const revType = (type == 'wrongMultiHash') ? 'deep' : 'lite';
     const rev = await revisionData(revType);
-    console.log(rev);
     rev[type].forEach(deleteFile);
     ctx.body = 'Ok';
   },

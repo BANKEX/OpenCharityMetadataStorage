@@ -2,8 +2,12 @@ env: development
 address:
   internal: 'http://127.0.0.1:8081'
   external: 'http://127.0.0.1:8081'
-cabinet: 'http://127.0.0.1:8080'
 mongoURI: 'mongodb://user:password@ds121889.mlab.com:21889/oc_meta'
+cabinet: 'http://127.0.0.1:8080'
+opencharity: 'http://127.0.0.1:8082'
+dapp:
+  ws: 'wss://wsprovider.staging.bankex.team:8636'
+  token: '0x6a183381d14371b4a228cca37802c09bd166ba9e'
 dirs:
   main: 'C:/NodeJS/OpenCharity/'
   public: 'C:/NodeJS/OpenCharity/public/'
