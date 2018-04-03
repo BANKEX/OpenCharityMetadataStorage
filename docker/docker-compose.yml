@@ -1,11 +1,13 @@
 version: '3'
 
 volumes:
+    meta_mongodb_data:
+    meta_mongodb_config:
     storage_data:
 
 services:
   oc_meta:
-    image: ${IMAGE}
+    image: $CI_REGISTRY_IMAGE
     container_name: oc_meta
     restart: always
     expose:
@@ -19,6 +21,25 @@ services:
     command: npm run staging
     volumes:
       - storage_data:/oc_meta/storage
+    depends_on:
+      - meta_mongodb
+
+  meta_mongodb:
+    image: aashreys/mongo-auth:latest
+    container_name: meta_mongodb
+    restart: always
+    volumes: 
+      - meta_mongodb_data:/data/db
+      - meta_mongodb_config:/data/configdb
+    expose:
+      - "27017"
+    environment:
+      AUTH: "yes"
+      MONGODB_ADMIN_USER: admin
+      MONGODB_ADMIN_PASS: $MONGODB_ADMIN_PASS
+      MONGODB_APPLICATION_DATABASE: meta
+      MONGODB_APPLICATION_USER: meta
+      MONGODB_APPLICATION_PASS: $MONGODB_STAGE_PASS
 
 networks:
   default:

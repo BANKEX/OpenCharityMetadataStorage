@@ -14,4 +14,7 @@ ADD /package.json /oc_meta/package.json
 ADD /node_modules /oc_meta/node_modules
 RUN mkdir /oc_meta/storage
 
+RUN sed -i "s@testpass@$MONGODB_STAGE_PASS@" /oc_meta/config/staging.yaml
+RUN sed -i "s@testpass@$MONGODB_PROD_PASS@" /oc_meta/config/production.yaml
+
 EXPOSE 8080
