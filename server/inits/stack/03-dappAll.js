@@ -53,7 +53,7 @@ const subscribeBlockChainConnectionError = () => {
       }
     } else {
       console.log('log - ' + new Date().toLocaleString());
-      console.log(log);
+      // console.log(log);
     }
   });
 };

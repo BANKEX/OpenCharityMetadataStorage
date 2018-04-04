@@ -11,6 +11,8 @@ app.state = {
   web3: false,
   previous: [],
   actual: [],
+  previousORG: [],
+  actualORG: [],
 };
 
 app.start = async () => {

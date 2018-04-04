@@ -32,6 +32,8 @@ function MetamapObject(objExt) {
 const init = async () => {
   app.state.previous = app.state.actual;
   app.state.actual = [];
+  app.state.previousORG = app.state.actualORG;
+  app.state.actualORG = app.state.initList.list;
   const CharityEventObjectExt = async (event) => {
     const singleCharityEvent = async (CEaddress) => {
       const CEcontract = new app.state.web3.eth.Contract(app.state.initList.abis['CharityEvent'], CEaddress);
@@ -96,8 +98,9 @@ const init = async () => {
           const parsedFile = JSON.parse(fs.readFileSync(filePath));
           parsedFile.id = charityEventObjectExt.metaStorageHash;
           addBatchToLine(parsedFile);
+          process.stdout.write('+');
         } else {
-          process.stdout.write('x');
+          process.stdout.write('-');
         }
       }
       // push to search-index
@@ -177,7 +180,7 @@ const init = async () => {
       console.log('MetaUpdated');
       const ORGaddress = event.address;
       const { ownerAddress, metaStorageHash } = event.returnValues;
-      // edit DB
+      console.log(event);
     };
 
     _ORGAddressList.forEach((ORGaddress) => {
@@ -198,7 +201,8 @@ const init = async () => {
 
   await deleteInactiveAddresses();
 
-  subscribe(app.state.initList.list);
+  const newORG = app.state.actualORG.filter(el => (!app.state.previousORG.includes(el)));
+  subscribe(newORG);
 };
 
 export default {
