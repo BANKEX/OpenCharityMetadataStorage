@@ -153,7 +153,7 @@ const writeFile = (stream, tempPathFile) => {
           const dataHashBuffer = multihash.fromHexString(dataHashHex);
           const multiHashBuffer = multihash.encode(dataHashBuffer, 'sha2-256');
           const multiHashB58 = multihash.toB58String(multiHashBuffer);
-          const metadataStoragePath = getStoragePath(multiHashB58, isJSON);
+          const metadataStoragePath = getStoragePath(multiHashB58);
           if (!metadataStoragePath) return localError(605);
           if (!makeStorageDirs(metadataStoragePath)) return localError(605);
           if (!fs.existsSync(metadataStoragePath)) {

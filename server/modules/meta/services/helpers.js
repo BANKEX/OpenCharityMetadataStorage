@@ -30,7 +30,7 @@ const getStoragePath = (multiHashB58) => {
 const makeStorageDirs = (pathDirs) => {
   const storagePath = path.join(DIRS.storage, 'data');
   if (pathDirs.indexOf(storagePath)!=0) return false;
-  const metadataPathArray = pathDirs.replace(storagePath+'\\', '').split('\\');
+  const metadataPathArray = pathDirs.replace(storagePath+path.sep, '').split(path.sep);
   if (!isB58(metadataPathArray.join(''))) return false;
   let noFail = true;
   metadataPathArray.forEach((elem, index) => {
