@@ -61,4 +61,4 @@ To have a more open and welcoming community, BankEx adheres to a [code of conduc
 * **Vlad Goltcer** - *Initial work* - [ye5no](https://github.com/ye5no)
 
 ### License
-"OpenCharityDApp back" is available under the MIT license. See the LICENSE file for more info.
+"OpenCharity Metadata storage & Search machine" is available under the MIT license. See the LICENSE file for more info.

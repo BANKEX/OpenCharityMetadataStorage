@@ -11,7 +11,7 @@ const isB58 = (multiHashB58) => {
 
 const getHashFromPath = (pathFile) => {
   const hashSlash = path.normalize(pathFile.replace(path.join(DIRS.storage, 'data'), ''));
-  return hashSlash.replace(/\\/g, '');
+  return hashSlash.replace(/\\/g, '').replace(/\//g, '');
 };
 
 const getStoragePath = (multiHashB58) => {
