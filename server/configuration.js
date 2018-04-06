@@ -1,11 +1,17 @@
 import config from 'config';
+import path from 'path';
 
 const ADDRESS = config.get('address');
-const DIRS = config.get('dirs');
+const DIRS = {};
+DIRS.main = path.resolve();
+DIRS.public = path.resolve('public');
+DIRS.storage = path.isAbsolute(config.get('dirs').storage)
+  ? config.get('dirs').storage
+  : path.resolve(config.get('dirs').storage);
+
 const MONGO_URI = config.get('mongoURI');
 const DAPP = config.get('dapp');
 const OC = config.get('opencharity');
-const CAB = config.get('cabinet');
 const INTERVALS = config.get('intervals');
 const fileSettings = config.get('fileSettings');
 const CORS = config.get('cors');
@@ -16,7 +22,6 @@ export {
   MONGO_URI,
   DAPP,
   OC,
-  CAB,
   INTERVALS,
   fileSettings,
   CORS,

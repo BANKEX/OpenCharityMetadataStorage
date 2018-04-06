@@ -95,29 +95,28 @@ const dappInit = async () => {
     try {
       await DappService.init();
       clearInterval(intProcess);
-      // process.stdout.write('done\n');
+      await new Promise((resolve) => {
+        let twice = false;
+        const intProcess = setInterval(() => {
+          process.stdout.write('.');
+          if (readyToIndex) {
+            if (twice) {
+              clearInterval(intProcess);
+              process.stdout.write('done\n');
+              resolve();
+            } else {
+              twice = true;
+            }
+          } else {
+            twice = false;
+          }
+        }, 500);
+      });
     } catch (e) {
       clearInterval(intProcess);
       process.stdout.write('!!!-crashed-!!!\n');
       console.error(e);
     }
-    await new Promise((resolve) => {
-      let twice = false;
-      const intProcess = setInterval(() => {
-        process.stdout.write('.');
-        if (readyToIndex) {
-          if (twice) {
-            clearInterval(intProcess);
-            process.stdout.write('done\n');
-            resolve();
-          } else {
-            twice = true;
-          }
-        } else {
-          twice = false;
-        }
-      }, 500);
-    });
   }
 };
 

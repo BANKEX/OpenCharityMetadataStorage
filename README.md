@@ -1,150 +1,64 @@
-# OpenCharityMetadata
+![logo](https://opencharity.staging.bankex.team/api/logo.png)
+# OpenCharity Metadata storage & Search machine
 
-## Установка
-1. склонировать репозиторий
-2. npm install
-3. настроить файлы config: development.yaml, staging.yaml и production.yaml
-4. Для запуска в development-окружении: npm run development
-5. Для запуска в окружених staging |production:
-    * создать пустую папку build в корне проекта
-    * npm run build
-    * npm run staging | production
+# Getting Started
 
-## Тестирование
-1. Установить mocha глобально: npm i mocha -g
-2. Тестирование:
-    * запустить сервер в требуемом окружении (development | staging | production)
-    * запустить тестирование npm run testDev | testStage | testProd
+### Require
+* NodeJS version >= 8.9
 
-## Страница тестирования API
-По адресу /api/testAPI доступен интерфейс тестирования всех функций API.<br/>
-Все фронтэнд-функции для работы с API см. в /public/testAPI.js
+### Install
+1. `git clone` this repo
+2. `cd oc_metadata_storage`
+3. `npm install`
+4. configure yamls in `config` dir. There is `development.example.yaml` for edit.
+5. (optional) set storage in `default.yaml`, or copy `dirs` param to development/staging/production.yaml and set it separately
 
-## Работа с метаданными
+### Run
+Environments run:
+* development: `npm run development`
+* staging:
+    - make dir build
+    - `npm run build`
+    - `npm run staging`
+* production:
+    - make dir build
+    - `npm run build`
+    - `npm run production`
 
-### GET /api/meta/getData/:hash[;:hash]
-Получение метаданных от сервера по hash.<br/>
-Имеются два типа данных json и binary:
-    * JSON данные отдаются в кодировке utf-8, application/json.
-    * binary отдаются с заголовком 'X-Content-Type-Options': 'nosniff'.
-Пример обработки полученных данных см. в public/testAPI.js <br/>
-Если один hash (одиночный запрос) - ответ файл по данному запросу.<br/>
-Если несколько hash через ; (мультизапрос) - ответ мультипарт форма вида (всегда отдается в utf-8, 'Content-Type': 'text/plain;charset=utf-8'):
+### Usage
+Development. Server running on 127.0.0.1:8081. Test page - /api/testapi
 
-    ----------------------------383220747894497436223661
-    Content-Disposition: form-data; name="QmQUAA66JLVghKEZ6n5F2N6UVkvmf4AbAUsuJaeV9SNxha"; filename="6n5F2N6UVkvmf4AbAUsuJaeV9SNxha"
-    Content-Type: application/octet-stream
+### Tests
+1. Install mocha globally: `npm i mocha -g`
+2. Run server on your environment
+3. Environments:
+    * development: `npm run testDev`
+    * staging: `npm run testStage`
+    * production: `npm run testProd`
 
-    {"a": "sdfs","b":"sdfsdfgg"}
-    ----------------------------383220747894497436223661
-    Content-Disposition: form-data; name="Qmd3f7wWCdWkbKQjpN3bW7WMEbxTsKTM5a6NTYQxcuTJEd"; filename="pN3bW7WMEbxTsKTM5a6NTYQxcuTJEd"
-    Content-Type: application/octet-stream
+### Demo
+https://meta.staging.bankex.team/api/testapi
 
-    sdfs
-    ----------------------------383220747894497436223661
-    Content-Disposition: form-data; name="fsdf"
+# API description
 
-    false
-    ----------------------------383220747894497436223661--
+* [Meta](documentation/endpoints/meta.md)
+* [Search](documentation/endpoints/search.md)
 
-Если в одинночном запросе hash не найден возвращает 404.<br/>
-Если в мультизапросе один или несколько hash'ей не найдено, возвращается false в данном блоке.
+# Other
+### Code of Conduct
+To have a more open and welcoming community, BankEx adheres to a [code of conduct](CODE_OF_CONDUCT.md).
 
-### POST /api/meta/postData
-Отправка метаданных на сервер.<br/>
-Фронтэнд функция sendBlobsToServer принимает blobs - нумированный объект или массив и отправляет на сервер данные через поток.<br/>
-Пример обработки полученных данных см. в public/testAPI.js <br/>
-```
-const sendBlobsToServer = (blobs) => {
-  return new Promise((resolve, reject) => {
-    let counter=0;
-    const hashes = [];
-    for (let i=0, len=blobs.length; i<len; i++) {
-      const blob = blobs[i];
-      const reader = new FileReader();
-      const xhr = new XMLHttpRequest();
-      xhr.open('post', '/api/meta/postData');
-      xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
-      reader.readAsArrayBuffer(blob);
-      reader.onload = function (event) {
-        xhr.send(event.target.result);
-        xhr.onload = (event) => {
-          if (event.target.status==200) {
-            hashes[i] = event.target.responseText;
-            counter++;
-            if (counter==len) resolve(hashes);
-          } else {reject(event.target.responseText)}
-        };
-      }
-    }
-  });
-};
-```
-При успешном сохранении метаинформации возвращает массив hashes.
+### Communication
+* If you need help, you found a bug or you have a feature request, open an issue
+* If you want to contribute, see Contributing section.
 
-### Структура метаданных
-Данные JSON индексируются для поиска и хранятся в следующем виде:
-```
-{
-    "type":1,
-    "searchDescription":"",
-    "data":{
-        "title":"Test 1903",
-        "description":"talk hide ride",
-        "image":{
-            "name":"19itg8t.JPG",
-            "type":"image/jpeg",
-            "size":39965,
-            "storageHash":"QmaCvtwqsEfQAJsh97HZdWRDBEEmphYx2qbVvavTEipqWX"
-        },
-        "attachments": [{аналогично image}]
-    }
-}
-```
+### Contributing
+* The best way to contribute is by submitting a pull request.
+* Fork it
+* Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-### POST /api/meta/delData
-Удаляет метаданные по hash.<br/>
-Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
-Обязательное поле hash.<br/>
+### Authors
+* **Vlad Goltcer** - *Initial work* - [ye5no](https://github.com/ye5no)
 
-### POST /api/meta/updateData
-Доступно только для JSON-метаданных.<br/>
-Удаляет JSON oldHash, учитывая перекресные ссылки с JSON newHash, удаляет неиспользуемые бинарники, снимает индексацию с oldHash.<br/>
-Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
-Обязательные поля { oldHash, newHash }.<br/>
-
-### GET /api/meta/revision/:type
-Производит ревизию метаданных.<br/>
-Возвращает объект с полями в зависимости от типа запроса.<br/>
-type: ['lite', 'long', 'deep']<br/>
-1. lite - простая инвентаризация.
-    * missedBinary - список бинарников, на которые ссылают JSON, но их нет
-    * missedJSON - список JSON, на которые ссылается DB Metamap, но их нет
-    * unusedBinary - список бинарников, которые занимают дисковое пространство, но не используются ни одним JSON
-    * unusedJSON - список JSON, не упомянутых в DB Metamap
-    * statistic - статистические данные
-2. long - тоже самое, что lite, но добавляется еще 1 поле:
-    * storeJSON - это объект {hashJSON: [hashBinary]} - информация о всех хранимых данных.
-3. deep - тоже самое, что lite, но добавляется еще 1 поле:
-    * wrongMultiHash - список hashes, имя которых не соответствует содержимому.
-Обязательное поле hash.<br/>
-
-### POST /api/meta/recover
-Вносит исправления в хранилище метаданных на основаниии ревизии.<br/>
-Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
-Обязательные поля password и type.<br/>
-type: ['wrongMultiHash', 'unusedJSON', 'unusedBinary']
-1. wrongMultiHash - удаляет все файлы hash, которых не соответствует их содержимому.
-2. unusedJSON - удаляет все JSON-файлы не упомянутые в DB Metamap
-3. unusedBinary - удаляет все неиспользуемые бинарники
-Для полной отчиски хранилища необходимо запустить последовательно данную функцию 3 раза по порядку.
-
-
-### POST /api/meta/search
-Ищет запрос в проиндексированных данных.<br/>
-Принимает content-type application/json и application/x-www-form-urlencoded.<br/>
-Принимает запрос по правилам библиотеки search-index (https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md)<br/>
-Возвращает массив объектов вида: `{ type, searchDescription, data, id }`<br/>
-Если id начинается с 'Qm...', то это объект метаданных, если с '0x...', то это DAPP-объект.<br/>
-
-
+### License
+"OpenCharityDApp back" is available under the MIT license. See the LICENSE file for more info.

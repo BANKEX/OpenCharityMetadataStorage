@@ -5,6 +5,7 @@ import fs from 'fs';
 import { fileSettings, DIRS, INTERVALS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import io from '../io';
+import path from 'path';
 
 import { 
   isB58, 
@@ -31,11 +32,9 @@ const readFiles = (stream, multiHashRequest) => {
         }
         let file;
         if (isJSON) {
-          console.log('json');
           stream.writeHead(200, {'Content-Type': 'application/json'});
           file = fs.createReadStream(filePath, {encoding: 'utf-8'});
         } else {
-          console.log('binary');
           stream.writeHead(200, {'X-Content-Type-Options': 'nosniff'});
           file = fs.createReadStream(filePath);
         }
@@ -141,7 +140,6 @@ const writeFile = (stream, tempPathFile) => {
           let parsed;
           try {
             parsed = JSON.parse(tempFile);
-            console.log(parsed);
             if (parsed.searchDescription==undefined || !parsed.type || !parsed.data) return localError(607);
             if (typeof parsed.searchDescription!='string' || typeof parsed.data!='object') return localError(608);
             if (isNaN(Number(parsed.type))) return localError(608);
@@ -177,18 +175,20 @@ const writeFile = (stream, tempPathFile) => {
 };
 
 const deleteFile = (hash) => {
-  const path = checkFile(hash);
-  if (!path) throw new AppError(409, 600);
-  const stat = fs.statSync(path);
+  const pathFile = checkFile(hash);
+  if (!pathFile) throw new AppError(409, 600);
+  const stat = fs.statSync(pathFile);
   if (stat.ctime < Date.now() - INTERVALS.fs.deleteFileAfter) {
-    fs.unlinkSync(path);
+    fs.unlinkSync(pathFile);
     // io.delFromIndex(hash);
+  } else {
+    throw new AppError(406, 610);
   }
 };
 
 const updateMetadata = (oldHash, newHash) => {
-  const oldPath = getStoragePath(oldHash);
-  const newPath = getStoragePath(newHash);
+  const oldPath = checkFile(oldHash);
+  const newPath = checkFile(newHash);
   if (oldPath && newPath) {
     const oldFile = fs.readFileSync(oldPath);
     const newFile = fs.readFileSync(newPath);
@@ -197,8 +197,8 @@ const updateMetadata = (oldHash, newHash) => {
       const newData = JSON.parse(newFile);
       const oldAttachments = getAttachHashes(oldData);
       const newAttachments = getAttachHashes(newData);
-      const noUseAttachments = oldAttachments.filter((hash) => (newAttachments.indexOf(hash)==-1));
-      noUseAttachments.forEach(deleteFile);
+      const noUseAttachments = oldAttachments.filter((hash) => (!newAttachments.includes(hash)));
+      // noUseAttachments.forEach(deleteFile);
       deleteFile(oldHash);
     } catch (e) {
       throw e;
@@ -242,9 +242,9 @@ const revisionData = (type) => {
           rev.storeJSON[hash] = attachments;
         }
         const noExist = attachments.filter((hash) => {
-          const path = checkFile(hash);
-          if (path) allUsedBinaryHashes.push(hash);
-          return (path==false);
+          const pathFile = checkFile(hash);
+          if (pathFile) allUsedBinaryHashes.push(hash);
+          return (pathFile==false);
         });
         if (noExist.length>0) {
           const missedJSONbinary = {};
@@ -285,11 +285,11 @@ const revisionData = (type) => {
 };
 
 const deleteStorage = () => {
-  deleteFolderRecursive(DIRS.storage + 'temp/');
-  deleteFolderRecursive(DIRS.storage + 'data/');
-  deleteFolderRecursive(DIRS.storage + 'index/');
-  fs.mkdirSync(DIRS.storage + 'temp/');
-  fs.mkdirSync(DIRS.storage + 'data/');
+  deleteFolderRecursive(path.join(DIRS.storage, 'temp'));
+  deleteFolderRecursive(path.join(DIRS.storage, 'data'));
+  deleteFolderRecursive(path.join(DIRS.storage, 'index'));
+  fs.mkdirSync(path.join(DIRS.storage, 'temp'));
+  fs.mkdirSync(path.join(DIRS.storage, 'data'));
 };
 
 export {

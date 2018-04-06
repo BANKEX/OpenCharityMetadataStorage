@@ -10,7 +10,7 @@ router
     await ctx.render('testAPI');
   })
   .get('*', async (ctx) => {
-    ctx.state.message = 'Запрос к API некорректен';
+    ctx.state.message = 'Wrong API request';
     ctx.state.status = 404;
     ctx.res.statusCode = 404;
     await ctx.render('error');

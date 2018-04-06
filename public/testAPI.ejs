@@ -13,144 +13,183 @@
       overflow-x: scroll;
       min-height: 100px;
     }
+    .pan {
+      margin-left: 1em;
+      margin-right: 1em;
+    }
   </style>
 </head>
 <body>
-  <div class="container" style="border-left: 2px solid black; padding-left: 30px">
+  <div class="pan">
     <h1>OpenCharityMetadata testAPI</h1>
 
-    <div class="row">
-      <h3>Revision</h3>
-      <div class="col-sm-6">
-        <p>
-          <button class="btn btn-primary btn-sm" onClick="revision('lite')">Revision lite</button>
-          <button class="btn btn-primary btn-sm" onClick="revision('long')">Revision long</button>
-          <button class="btn btn-primary btn-sm" onClick="revision('deep')">Revision deep</button>
-        </p>
-      </div>
-      <div class="col-sm-6 resp" id="respREV"></div>
-    </div>
+    <div class="panel-group" id="accordion">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+              MetaStorage API /api/meta
+            </a>
+          </h4>
+        </div>
+        <div id="collapse1" class="panel-collapse collapse">
+          <div class="panel-body pan">
 
-    <div class="row">
-      <h3>[recover] metaStorage</h3>
-      <div class="col-sm-6">
+            <div class="row">
+              <h3>Revision</h3>
+              <div class="col-sm-6">
+                <p>
+                  <button class="btn btn-primary btn-sm" onClick="revision('lite')">Revision lite</button>
+                  <button class="btn btn-primary btn-sm" onClick="revision('long')">Revision long</button>
+                  <button class="btn btn-primary btn-sm" onClick="revision('deep')">Revision deep</button>
+                </p>
+              </div>
+              <div class="col-sm-6 resp" id="respREV"></div>
+            </div>
 
-        <div class="input-group">
-          <span class="input-group-addon">password</span>
-          <input type="password" class="form-control" id="passREC">
-          <div class="input-group-btn">
-            <button class="btn btn-danger dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
-            <ul class="dropdown-menu pull-right">
-              <li><a onClick="recover('wrongMultiHash')">Del wrongMultiHash</a></li>
-              <li><a onClick="recover('unusedJSON')">Del unusedJSON</a></li>
-              <li><a onClick="recover('unusedBinary')">Del unusedBinary</a></li>
-            </ul>
+            <div class="row">
+              <h3>[recover] metaStorage</h3>
+              <div class="col-sm-6">
+
+                <div class="input-group">
+                  <span class="input-group-addon">password</span>
+                  <input type="password" class="form-control" id="passREC">
+                  <div class="input-group-btn">
+                    <button class="btn btn-danger dropdown-toggle" data-toggle="dropdown">Действие <span class="caret"></span></button>
+                    <ul class="dropdown-menu pull-right">
+                      <li><a onClick="recover('wrongMultiHash')">Del wrongMultiHash</a></li>
+                      <li><a onClick="recover('unusedJSON')">Del unusedJSON</a></li>
+                      <li><a onClick="recover('unusedBinary')">Del unusedBinary</a></li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+              <div class="col-sm-6 resp" id="respREC"></div>
+            </div>
+
+            <div class="row">
+              <h3>Upload metadata</h3>
+              <div class="col-sm-6">
+                <div class="input-group">
+                  <span class="input-group-addon" onmouseover="tipUL.style.display='block'" onmouseleave="tipUL.style.display='none'">type</span>
+                  <input class="form-control" type="number" id="typeUL" min="0" value="1" step="1">
+                </div>
+                <div id="tipUL" style="display: none">0-organization, 1-charityEvent, 2-incomingDonation</div>
+                <textarea class="form-control" placeholder="description" id="descriptionUL" rows="4"></textarea>
+                <div class="col-sm-2">
+                  image
+                </div>
+                <div class="col-sm-10">
+                  <input type="file" class="form-control" placeholder="image" id="imageUL">
+                </div>
+                <div class="col-sm-2">
+                  attachments
+                </div>
+                <div class="col-sm-10">
+                  <input type="file" class="form-control" placeholder="attachements" multiple id="fileUL">
+                </div>
+                <button class="btn btn-success" onClick="upload()">Send</button>
+              </div>
+              <div class="col-sm-6 resp" id="respUL"></div>
+            </div>
+
+            <div class="row">
+              <h3>Download metadata</h3>
+              <div class="col-sm-6">
+                <input class="form-control" type="text" placeholder="hash[;hash]" id="hashDL">
+                <button class="btn btn-success" onClick="download()">Send</button>
+              </div>
+              <div class="col-sm-6 resp">
+                <div id="respDL"></div>
+                <div id="DLimage"></div>
+                <div id="DLattach"></div>
+              </div>
+            </div>
+
+            <div class="row">
+              <h3>Delete metadata</h3>
+              <div class="col-sm-6">
+                <input class="form-control" type="text" placeholder="hash" id="hashDel">
+                <button class="btn btn-success" onClick="deleteMeta()">Send</button>
+              </div>
+              <div class="col-sm-6 resp" id="respDel"></div>
+            </div>
+
+            <div class="row">
+              <h3>Update metadata</h3>
+              <div class="col-sm-6">
+                <input class="form-control" type="text" placeholder="oldHash" id="oldUPD">
+                <input class="form-control" type="text" placeholder="newHash" id="newUPD">
+                <button class="btn btn-success" onClick="updateMeta()">Send</button>
+              </div>
+              <div class="col-sm-6 resp" id="respUPD"></div>
+            </div>
+
+
           </div>
         </div>
-
       </div>
-      <div class="col-sm-6 resp" id="respREC"></div>
-    </div>
 
-    <div class="row">
-      <h3>Upload metadata</h3>
-      <div class="col-sm-6">
-        <div class="input-group">
-          <span class="input-group-addon" onmouseover="tipUL.style.display='block'" onmouseleave="tipUL.style.display='none'">type</span>
-          <input class="form-control" type="number" id="typeUL" min="0" value="1" step="1">
+      <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                Search API /api/search
+              </a>
+            </h4>
+          </div>
+          <div id="collapse2" class="panel-collapse collapse in">
+            <div class="panel-body pan">
+
+              <div class="row">
+                <h3>Search</h3>
+                <div class="col-sm-6">
+                  <select id="selSI">
+                    <option value="" selected>other...</option>
+                    <option value="0">organization</option>
+                    <option value="1">charityEvent</option>
+                    <option value="2">incomingDonation</option>
+                  </select>
+                  <input class="form-control" type="text" placeholder="text" id="textSI" value="*">
+                  <div class="input-group">
+                    <span class="input-group-addon">pagesize</span>
+                    <input class="form-control" type="number" id="sizeSI" value="10" step="10">
+                  </div>
+                  <div class="input-group">
+                    <span class="input-group-addon">page</span>
+                    <input class="form-control" type="number" id="pageSI" value="1" step="1">
+                  </div>
+                  <button class="btn btn-success" onClick="search()">Send</button>
+                </div>
+                <div class="col-sm-6 resp" id="respSI"></div>
+              </div>
+
+              <div class="row">
+                <h3>[reindex] search (delete DAPP-object)</h3>
+                <div class="col-sm-6">
+                  <input class="form-control" type="password" placeholder="password" id="passRE">
+                  <button class="btn btn-danger" onClick="reindex()">Send</button>
+                </div>
+                <div class="col-sm-6 resp" id="respRE"></div>
+              </div>
+
+              <div class="row">
+                <h3>[drop] storage & search-index</h3>
+                <div class="col-sm-6">
+                  <input class="form-control" type="password" placeholder="password" id="passDrop">
+                  <button class="btn btn-danger" onClick="drop()">Send</button>
+                </div>
+                <div class="col-sm-6 resp" id="respDrop"></div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
-        <div id="tipUL" style="display: none">0-organization, 1-charityEvent, 2-incomingDonation</div>
-        <textarea class="form-control" placeholder="description" id="descriptionUL" rows="4"></textarea>
-        <div class="col-sm-2">
-          image
-        </div>
-        <div class="col-sm-10">
-          <input type="file" class="form-control" placeholder="image" id="imageUL">
-        </div>
-        <div class="col-sm-2">
-          attachments
-        </div>
-        <div class="col-sm-10">
-          <input type="file" class="form-control" placeholder="attachements" multiple id="fileUL">
-        </div>
-        <button class="btn btn-success" onClick="upload()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respUL"></div>
-    </div>
-
-    <div class="row">
-      <h3>Download metadata</h3>
-      <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="hash[;hash]" id="hashDL">
-        <button class="btn btn-success" onClick="download()">Send</button>
-      </div>
-      <div class="col-sm-6 resp">
-        <div id="respDL"></div>
-        <div id="DLimage"></div>
-        <div id="DLattach"></div>
       </div>
     </div>
-
-    <div class="row">
-      <h3>Delete metadata</h3>
-      <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="hash" id="hashDel">
-        <button class="btn btn-success" onClick="deleteMeta()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respDel"></div>
-    </div>
-
-    <div class="row">
-      <h3>Update metadata</h3>
-      <div class="col-sm-6">
-        <input class="form-control" type="text" placeholder="oldHash" id="oldUPD">
-        <input class="form-control" type="text" placeholder="newHash" id="newUPD">
-        <button class="btn btn-success" onClick="updateMeta()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respUPD"></div>
-    </div>
-
-    <div class="row">
-      <h3>Search</h3>
-      <div class="col-sm-6">
-        <select id="selSI">
-          <option value="" selected>other...</option>
-          <option value="0">organization</option>
-          <option value="1">charityEvent</option>
-          <option value="2">incomingDonation</option>
-        </select>
-        <input class="form-control" type="text" placeholder="text" id="textSI" value="*">
-        <div class="input-group">
-          <span class="input-group-addon">pagesize</span>
-          <input class="form-control" type="number" id="sizeSI" value="10" step="10">
-        </div>
-        <div class="input-group">
-          <span class="input-group-addon">page</span>
-          <input class="form-control" type="number" id="pageSI" value="1" step="1">
-        </div>
-        <button class="btn btn-success" onClick="search()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respSI"></div>
-    </div>
-
-    <div class="row">
-      <h3>[reindex] search (delete DAPP-object)</h3>
-      <div class="col-sm-6">
-        <input class="form-control" type="password" placeholder="password" id="passRE">
-        <button class="btn btn-danger" onClick="reindex()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respRE"></div>
-    </div>
-
-    <div class="row">
-      <h3>[drop] storage & search-index</h3>
-      <div class="col-sm-6">
-        <input class="form-control" type="password" placeholder="password" id="passDrop">
-        <button class="btn btn-danger" onClick="drop()">Send</button>
-      </div>
-      <div class="col-sm-6 resp" id="respDrop"></div>
-    </div>
-
   </div>
   <script src="testAPI.js"></script>
 </body>

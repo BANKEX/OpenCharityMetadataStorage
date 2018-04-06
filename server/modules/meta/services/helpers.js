@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { DIRS, fileSettings } from 'configuration';
+import path from 'path';
 
 const isB58 = (multiHashB58) => {
   if (typeof multiHashB58 !== 'string') return false;
@@ -8,28 +9,28 @@ const isB58 = (multiHashB58) => {
   return true;
 };
 
-const getHashFromPath = (path) => {
-  const hashSlash = path.replace(DIRS.storage + 'data/', '');
-  return hashSlash.replace(/\//g, '');
+const getHashFromPath = (pathFile) => {
+  const hashSlash = path.normalize(pathFile.replace(path.join(DIRS.storage, 'data'), ''));
+  return hashSlash.replace(/\\/g, '');
 };
 
 const getStoragePath = (multiHashB58) => {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = DIRS.storage + 'data/';
+  let metadataStoragePath = path.join(DIRS.storage, 'data');
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
-    metadataStoragePath += cat + '/';
+    metadataStoragePath = path.join(metadataStoragePath, cat);
     offset+=elem;
   });
-  metadataStoragePath += multiHashB58.slice(offset);
+  metadataStoragePath = path.join(metadataStoragePath, multiHashB58.slice(offset));
   return metadataStoragePath;
 };
 
-const makeStorageDirs = (path) => {
-  if (path.indexOf(DIRS.storage)!=0) return false;
-  const storagePath = DIRS.storage + 'data/';
-  const metadataPathArray = path.replace(storagePath, '').split('/');
+const makeStorageDirs = (pathDirs) => {
+  const storagePath = path.join(DIRS.storage, 'data');
+  if (pathDirs.indexOf(storagePath)!=0) return false;
+  const metadataPathArray = pathDirs.replace(storagePath+'\\', '').split('\\');
   if (!isB58(metadataPathArray.join(''))) return false;
   let noFail = true;
   metadataPathArray.forEach((elem, index) => {
@@ -41,7 +42,7 @@ const makeStorageDirs = (path) => {
     let makePath = storagePath;
     metadataPathArray.forEach((elem, index) => {
       if (index != metadataPathArray.length-1) {
-        makePath += elem+'/';
+        makePath = path.join(makePath, elem);
         if (!fs.existsSync(makePath)) fs.mkdirSync(makePath);
       }
     });
@@ -68,17 +69,17 @@ const getAttachHashes = (obj) => {
   return arr;
 };
 
-const deleteFolderRecursive = (path) => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file) => {
-      const curPath = path + '/' + file;
+const deleteFolderRecursive = (pathDir) => {
+  if (fs.existsSync(pathDir)) {
+    fs.readdirSync(pathDir).forEach((file) => {
+      const curPath = path.join(pathDir, file);
       if (fs.lstatSync(curPath).isDirectory()) {
         deleteFolderRecursive(curPath);
       } else {
         fs.unlinkSync(curPath);
       }
     });
-    fs.rmdirSync(path);
+    fs.rmdirSync(pathDir);
   }
 };
 
@@ -86,10 +87,10 @@ const researchData = (func, callback) => {
   let reindexBinary = 0;
   let reindexJSON = 0;
 
-  const getFilePathRecursive = (path, callback) => {
-    if (fs.existsSync(path)) {
-      fs.readdirSync(path).forEach((file) => {
-        const curPath = path + '/' + file;
+  const getFilePathRecursive = (pathFile, callback) => {
+    if (fs.existsSync(pathFile)) {
+      fs.readdirSync(pathFile).forEach((file) => {
+        const curPath = path.join(pathFile, file);
         if (fs.lstatSync(curPath).isDirectory()) {
           getFilePathRecursive(curPath, callback);
         } else {
@@ -108,7 +109,7 @@ const researchData = (func, callback) => {
     }
   };
   
-  getFilePathRecursive(DIRS.storage+'data/', func);
+  getFilePathRecursive(path.join(DIRS.storage, 'data'), func);
   // console.log('reindexJSON='+reindexJSON);
   // console.log('reindexBinary='+reindexBinary);
   if (callback) callback(reindexJSON, reindexBinary);

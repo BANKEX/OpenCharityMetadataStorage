@@ -11,3 +11,5 @@ intervals:
     refreshInitList: 600000
   fs:
     deleteFileAfter: 86400000
+dirs:
+  storage: 'storage/'

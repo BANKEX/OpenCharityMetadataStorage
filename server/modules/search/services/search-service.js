@@ -1,6 +1,7 @@
 import searchIndex from 'search-index';
 import { DIRS } from 'configuration';
 import { Readable } from 'stream';
+import path from 'path';
 
 let index;
 const addLine = [];
@@ -12,7 +13,7 @@ const init = async () => {
   return new Promise((resolve, reject) => {
     const searchOptions = {
       appendOnly: false,
-      indexPath: DIRS.storage + 'index',
+      indexPath: path.join(DIRS.storage, 'index'),
       logLevel: 'error',
     };
     const start = (err, newIndex) => {

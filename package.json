@@ -1,7 +1,7 @@
 {
   "name": "OpenCharityMetadata",
   "version": "1.0.0",
-  "description": "OpenCharityMetadata",
+  "description": "OpenCharity Metadata storage & Search machine",
   "repository": "https://git.bankex.team/open_charity/oc_metadata_storage.git",
   "author": "ye5no",
   "license": "MIT",

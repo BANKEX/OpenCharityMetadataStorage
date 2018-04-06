@@ -3,9 +3,15 @@ const request = require('request');
 const rp = require('request-promise');
 const fs = require('fs');
 const config = require('config');
+const path = require('path');
 
 const ADDRESS = config.get('address');
-const DIRS = config.get('dirs');
+const DIRS = {};
+DIRS.main = path.resolve();
+DIRS.public = path.resolve('public');
+DIRS.storage = path.isAbsolute(config.get('dirs').storage)
+  ? config.get('dirs').storage
+  : path.resolve(config.get('dirs').storage);
 const fileSettings = config.get('fileSettings');
 
 rp.defaults({
@@ -16,30 +22,31 @@ rp.defaults({
 
 const mainURL = ADDRESS.external;
 
-function isB58(multiHashB58) {
+
+const isB58 = (multiHashB58) => {
   if (typeof multiHashB58 !== 'string') return false;
   if (multiHashB58.length!=46) return false;
   if (multiHashB58.indexOf('Qm')!=0) return false;
   return true;
-}
+};
 
-function getStoragePath(multiHashB58) {
+const getStoragePath = (multiHashB58) => {
   if (!isB58(multiHashB58)) return false;
-  let metadataStoragePath = DIRS.storage + 'data/';
+  let metadataStoragePath = path.join(DIRS.storage, 'data');
   let offset=0;
   fileSettings.dirSplit.forEach((elem) => {
     const cat = multiHashB58.slice(offset, elem+offset);
-    metadataStoragePath += cat + '/';
+    metadataStoragePath = path.join(metadataStoragePath, cat);
     offset+=elem;
   });
-  metadataStoragePath += multiHashB58.slice(offset);
+  metadataStoragePath = path.join(metadataStoragePath, multiHashB58.slice(offset));
   return metadataStoragePath;
-}
+};
 
 
 
 describe('--------/api/meta/postData tests-----------', ()=> {
-  it('POST новых метаданных', async()=> {
+  it('POST new metadata', async()=> {
     let options = {
       method: 'POST',
       uri: mainURL + '/api/meta/postData/',
@@ -49,7 +56,7 @@ describe('--------/api/meta/postData tests-----------', ()=> {
     assert.equal(response, 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX');
   });
 
-  it('Повторный POST метаданных', async()=> {
+  it('Repeat POST same metadata', async()=> {
     let options = {
       method: 'POST',
       uri: mainURL + '/api/meta/postData/',
@@ -64,7 +71,7 @@ describe('--------/api/meta/postData tests-----------', ()=> {
 });
 
 describe('--------/api/meta/getData tests-----------', () => {
-  it('GET запрос на ранее загруженный файл и его удаление', (done)=> {
+  it('GET previous test posted metadata and delete it', (done)=> {
     const hash = 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX';
     const requestPath = mainURL+'/api/meta/getData/'+hash;
     request(requestPath, (err, resp, body) => {
@@ -75,7 +82,7 @@ describe('--------/api/meta/getData tests-----------', () => {
     })
   });
 
-  it('GET запрос на только что удаленный файл', (done)=> {
+  it('GET previous test deleted metadata', (done)=> {
     const hash = 'Qmcwu47WYf65x6SXLz2Z3nWhxQtfPPtzoPD2VHaJ6UCfRX';
     const requestPath = mainURL+'/api/meta/getData/'+hash;
     request(requestPath, (err, resp, body) => {
@@ -87,7 +94,7 @@ describe('--------/api/meta/getData tests-----------', () => {
 });
 
 describe('--------/api/meta/getData tests Multi-----------', () => {
-  it('POST двух новых файлов и GET мультизапрос', async ()=> {
+  it('POST two new metadata, GET multirequest and delete them', async ()=> {
     const body = [
       'вавыаыа%;№#<>sdf234dsdfjsd83@',
       'jsd83@#$%^&*()+_{}"?">M~`/+ sdfnewоплпЛАУЛАТУЛА'

@@ -1,7 +1,7 @@
 import render from 'koa-ejs';
-import {DIRS} from 'configuration';
+import { DIRS } from 'configuration';
 
-let options = {
+const options = {
   root: DIRS.public,
   layout: false,
   viewExt: 'ejs',

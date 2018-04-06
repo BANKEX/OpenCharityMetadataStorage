@@ -1,0 +1,10 @@
+env: development
+address:
+  internal: 'http://127.0.0.1:8081' # set internal docker address
+  external: 'http://127.0.0.1:8081' # set external address for browser enter
+mongoURI: 'mongodb://USER:PASSWORD@DB' # set your mongo
+opencharity: 'http://127.0.0.1:8082' # set address OpenCharityDappBack API Server
+dapp:
+  ws: 'wss://wsprovider.staging.bankex.team:8636' # set DApp websocket provide
+  token: '0x6a183381d14371b4a228cca37802c09bd166ba9e' # set token smart-contract address
+cors: '*'

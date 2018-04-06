@@ -3,15 +3,10 @@ address:
   internal: 'http://0.0.0.0:8080'
   external: 'https://meta.bankex.team'
 mongoURI: 'mongodb://meta:testpass@meta_mongodb:27017/meta'
-cabinet: 'https://donatorscab.bankex.team'
 opencharity: 'https://opencharity.bankex.team'
 dapp:
   ws: 'wss://wsprovider.opencharity.bankex.team:8636'
   token: '0x7487a0251a0701a89cade302679b1d01c3d8a44f'
-dirs:
-  main: '/oc_meta/'
-  public: '/oc_meta/public/'
-  storage: '/oc_meta/storage/'
 cors:
   - 'https://donatorscab.bankex.team'
   - 'https://opencharity.bankex.team'

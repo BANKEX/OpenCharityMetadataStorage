@@ -1,4 +1,3 @@
-import { DIRS, fileSettings } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
 import { init, search, addBatchToLine, close, flush } from '../services/search-service';
 import { Metamap } from '../index';
@@ -53,18 +52,20 @@ export default {
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='reindex') throw new AppError(401, 100);
     await flush();
-    console.log('---------------------');
-    const revision = await io.revisionMetadata('long');
-    const storedJSONs = Object.getOwnPropertyNames(revision.storeJSON);
-    const usedJSONs = storedJSONs.filter((el) => (revision.unusedJSON.indexOf(el)==-1));
-    usedJSONs.forEach((hash) => {
-      const path = io.getMetadataStoragePath(hash);
-      const file = fs.readFileSync(path);
-      const obj = JSON.parse(file);
-      obj.id = hash;
-      addBatchToLine([obj]);
-    });
-    ctx.body = 'Ok';
+    /*
+      console.log('---------------------');
+      const revision = await io.revisionMetadata('long');
+      const storedJSONs = Object.getOwnPropertyNames(revision.storeJSON);
+      const usedJSONs = storedJSONs.filter((el) => (revision.unusedJSON.indexOf(el)==-1));
+      usedJSONs.forEach((hash) => {
+        const path = io.getMetadataStoragePath(hash);
+        const file = fs.readFileSync(path);
+        const obj = JSON.parse(file);
+        obj.id = hash;
+        addBatchToLine([obj]);
+      });
+    */
+    ctx.body = 'Index flushed. Waiting for reload data from OpenCharityDApp.';
   },
 
   async drop(ctx) {

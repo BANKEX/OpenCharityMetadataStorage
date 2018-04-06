@@ -1,4 +1,4 @@
-import { DIRS, DAPP, INTERVALS } from 'configuration';
+import { DAPP, INTERVALS } from 'configuration';
 import { Metamap } from '../modules/search';
 import { addBatchToLine, addBatchToDelLine } from '../modules/search/services/search-service';
 import { checkFile } from '../modules/meta/services/fileService';
@@ -156,31 +156,45 @@ const init = async () => {
 
   const subscribe = (_ORGAddressList) => {
     const charityEventAdded = async (event) => {
-      console.log(new Date().toLocaleString());
+      console.log(new Date().toLocaleString() + ' - CE added');
       const charityEventObjectExt = await CharityEventObjectExt(event);
-      if (charityEventObjectExt.metaStorageHash) {
-        await Metamap.create(new MetamapObject(charityEventObjectExt));
-      }
       app.state.previous.push(charityEventObjectExt.address);
       addBatchToLine(new DappObject('1', charityEventObjectExt));
-      console.log(charityEventObjectExt);
+      // console.log(charityEventObjectExt);
     };
     const incomingDonationAdded = async (event) => {
-      console.log(new Date().toLocaleString());
+      console.log(new Date().toLocaleString() + ' - ID added');
       const incomingDonationObjectExt = await IncomingDonationObjectExt(event);
-      if (incomingDonationObjectExt.metaStorageHash) {
-        await Metamap.create(new MetamapObject(incomingDonationObjectExt));
-      }
       app.state.previous.push(incomingDonationObjectExt.address);
       addBatchToLine(new DappObject('2', incomingDonationObjectExt));
-      console.log(incomingDonationObjectExt);
+      // console.log(incomingDonationObjectExt);
     };
     const metaStorageHashUpdated = async (event) => {
-      console.log(new Date().toLocaleString());
-      console.log('MetaUpdated');
-      const ORGaddress = event.address;
-      const { ownerAddress, metaStorageHash } = event.returnValues;
+      console.log(new Date().toLocaleString()+ ' - MetaUpdated');
       console.log(event);
+      const { ownerAddress, metaStorageHash } = event.returnValues;
+
+      const metamap = await Metamap.findOne({address: ownerAddress});
+      if (metamap) {
+        await Metamap.update({ address: ownerAddress }, { hash: metaStorageHash });
+      } else {
+        await Metamap.create({ address: ownerAddress, hash: metaStorageHash });
+      }
+
+      const filePath = checkFile(metaStorageHash);
+      if (filePath) {
+        const parsedFile = JSON.parse(fs.readFileSync(filePath));
+        parsedFile.id = metaStorageHash;
+        addBatchToLine(parsedFile);
+      } else {
+        console.log('Updated json not found');
+      }
+    };
+
+    const charityEventEdited = async (event) => {
+      console.log(new Date().toLocaleString()+ ' - CE edited');
+      console.log(event);
+      // const { ownerAddress, metaStorageHash } = event.returnValues;
     };
 
     _ORGAddressList.forEach((ORGaddress) => {
@@ -188,6 +202,7 @@ const init = async () => {
       ORGcontract.events.CharityEventAdded({ fromBlock: 'latest' }).on('data', charityEventAdded);
       ORGcontract.events.IncomingDonationAdded({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
       ORGcontract.events.MetaStorageHashUpdated({ fromBlock: 'latest' }).on('data', metaStorageHashUpdated);
+      ORGcontract.events.CharityEventEdited({ fromBlock: 'latest' }).on('data', charityEventEdited);
     });
   };
   
