@@ -190,7 +190,6 @@ const init = async () => {
         console.log('Updated json not found');
       }
     };
-
     const charityEventEdited = async (event) => {
       console.log(new Date().toLocaleString()+ ' - CE edited');
       console.log(event);
