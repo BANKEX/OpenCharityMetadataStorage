@@ -1,5 +1,4 @@
-![logo](https://opencharity.staging.bankex.team/api/logo.png)
-# OpenCharity Metadata storage & Search machine
+# BANKEX Foundation OpenCharity Metadata storage & Search machine
 
 # Getting Started
 
