@@ -39,7 +39,7 @@ export default async () => {
       uri: 'https://meta.staging.bankex.team/api/meta/revision/long',
     }));
     for (let key in revision.storeJSON) {
-      if (!revision.unusedJSON.includes(key)) await downloadFromStage(key);
+      if (!revision.unusedJSON.includes(key) && !revision.unusedBinary.includes(key)) await downloadFromStage(key);
     }
     clearInterval(int);
     process.stdout.write('done\n');

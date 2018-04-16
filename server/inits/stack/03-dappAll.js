@@ -13,21 +13,23 @@ rp.defaults({
 
 // BlockChain connection
 const tryBlockChainConnect = async () => {
-  process.stdout.write('BlockChain...');
-  const intProcess = setInterval(() => process.stdout.write('.'), 200);
-  const web3 = new Web3(new Web3.providers.WebsocketProvider(DAPP.ws));
-  try {
-    await web3.eth.getBlockNumber();
-    clearInterval(intProcess);
-    process.stdout.write('connected\n');
-    app.state.web3 = web3;
-    app.state.dapp[0] = 1;
-    subscribeBlockChainConnectionError();
-    await dappInit();
-  } catch (err) {
-    clearInterval(intProcess);
-    app.state.dapp[0] = 0;
-    setTimeout(tryBlockChainConnect, INTERVALS.dapp.reconnection);
+  if (app.state.dapp[0]==0) {
+    process.stdout.write('BlockChain...');
+    const intProcess = setInterval(() => process.stdout.write('.'), 200);
+    const web3 = new Web3(new Web3.providers.WebsocketProvider(DAPP.ws));
+    try {
+      await web3.eth.getBlockNumber();
+      clearInterval(intProcess);
+      process.stdout.write('connected\n');
+      app.state.web3 = web3;
+      app.state.dapp[0] = 1;
+      subscribeBlockChainConnectionError();
+      await dappInit();
+    } catch (err) {
+      clearInterval(intProcess);
+      app.state.dapp[0] = 0;
+      setTimeout(tryBlockChainConnect, INTERVALS.dapp.reconnection);
+    }
   }
 };
 const subscribeBlockChainConnectionError = () => {
@@ -68,6 +70,7 @@ const getInitListFromOC = async () => {
   return JSON.parse(await rp(options));
 };
 const loadInitList = async () => {
+  clearTimeout(app.state.reloadingTimeout);
   process.stdout.write('SmartContracts...');
   const intProcess = setInterval(() => process.stdout.write('.'), 200);
   let initList;
@@ -77,13 +80,13 @@ const loadInitList = async () => {
     process.stdout.write('reloaded\n');
     app.state.initList = initList;
     app.state.dapp[1] = 1;
-    setTimeout(loadInitList, INTERVALS.dapp.refreshInitList);
+    app.state.reloadingTimeout = setTimeout(loadInitList, INTERVALS.dapp.refreshInitList);
     await dappInit();
   } catch (e) {
     clearInterval(intProcess);
     process.stdout.write('!!!-crashed-!!!\n');
     app.state.dapp[1] = (app.state.initList) ? 1 : 0;
-    setTimeout(loadInitList, INTERVALS.dapp.reconnection);
+    app.state.reloadingTimeout = setTimeout(loadInitList, INTERVALS.dapp.reconnection);
   }
 };
 

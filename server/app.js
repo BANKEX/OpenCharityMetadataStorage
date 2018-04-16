@@ -13,6 +13,9 @@ app.state = {
   actual: [],
   previousORG: [],
   actualORG: [],
+  minBlock: 0,
+  token: false,
+  reloadingTimeout: false,
 };
 
 app.start = async () => {

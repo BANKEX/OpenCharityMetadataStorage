@@ -181,8 +181,6 @@ const deleteFile = (hash) => {
   if (stat.ctime < Date.now() - INTERVALS.fs.deleteFileAfter) {
     fs.unlinkSync(pathFile);
     // io.delFromIndex(hash);
-  } else {
-    throw new AppError(406, 610);
   }
 };
 

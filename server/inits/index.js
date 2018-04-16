@@ -10,7 +10,7 @@ export default async () => {
   return new Promise(async (resolve, reject) => {
     try {
       storage();
-      // if (process.env.NODE_ENV == 'development') await syncro();
+      if (process.env.NODE_ENV == 'development') await syncro();
       await mongo();
       await si();
       await dappAll();
