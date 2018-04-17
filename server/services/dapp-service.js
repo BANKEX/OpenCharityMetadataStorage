@@ -154,14 +154,19 @@ const init = async () => {
       // ORGcontract.events.IncomingDonationEdited({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
     });
   };
-  const unsubscribe = (_ORGAddressList) => {
-    _ORGAddressList.forEach((ORGaddress) => {
-      subscribtions[ORGaddress].forEach((subs) => {
-        subs.unsubscribe((err, res) => {
-          process.stdout.write((res) ? 'U' : 'E');
+  const unsubscribe = async (_ORGAddressList) => {
+    await Promise.all(_ORGAddressList.map(async (ORGaddress) => {
+      await Promise.all(subscribtions[ORGaddress].map(async (subs) => {
+        await new Promise((resolve) => {
+          subs.unsubscribe((err, res) => {
+            process.stdout.write((res) ? 'U' : 'E');
+            resolve();
+          });
         });
-      });
-    });
+        return null;
+      }));
+      return null;
+    }));
   };
 
   app.state.previous = app.state.actual;
@@ -186,7 +191,7 @@ const init = async () => {
   subscribe(newORG);
   // unsubscribe not actual Orgs
   const delORG = app.state.previousORG.filter(el => (!app.state.actualORG.includes(el)));
-  unsubscribe(delORG);
+  await unsubscribe(delORG);
 };
 
 // main object forming
