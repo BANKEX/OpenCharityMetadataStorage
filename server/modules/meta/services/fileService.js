@@ -4,7 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import { fileSettings, DIRS, INTERVALS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import io from '../io';
+import { Metamap } from '../../search';
 import path from 'path';
 
 import { 
@@ -136,7 +136,6 @@ const writeFile = (stream, tempPathFile) => {
       .on('close', () => {
         if (!fail) {
           const tempFile = fs.readFileSync(tempPathFile);
-          let isJSON;
           let parsed;
           try {
             parsed = JSON.parse(tempFile);
@@ -145,9 +144,8 @@ const writeFile = (stream, tempPathFile) => {
             if (isNaN(Number(parsed.type))) return localError(608);
             if (!Number.isInteger(Number(parsed.type)) || Number(parsed.type)<0) return localError(608);
             if (Object.getOwnPropertyNames(parsed.data).length==0) return localError(609);
-            isJSON = true;
           } catch (e) {
-            isJSON = false;
+            console.log('');
           }
           const dataHashHex = crypto.createHash('sha256').update(tempFile).digest('hex');
           const dataHashBuffer = multihash.fromHexString(dataHashHex);
@@ -158,12 +156,6 @@ const writeFile = (stream, tempPathFile) => {
           if (!makeStorageDirs(metadataStoragePath)) return localError(605);
           if (!fs.existsSync(metadataStoragePath)) {
             fs.renameSync(tempPathFile, metadataStoragePath);
-            /*
-            if (isJSON) {
-              parsed.id = multiHashB58;
-              io.addToIndex([parsed]);
-            }
-            */
             return resolve(multiHashB58);
           } else {
             fs.unlinkSync(tempPathFile);
@@ -180,7 +172,6 @@ const deleteFile = (hash) => {
   const stat = fs.statSync(pathFile);
   if (stat.ctime < Date.now() - INTERVALS.fs.deleteFileAfter) {
     fs.unlinkSync(pathFile);
-    // io.delFromIndex(hash);
   }
 };
 
@@ -221,7 +212,7 @@ const revisionData = (type) => {
     const allBinaryHashes = [];
     const allUsedBinaryHashes = [];
 
-    const db = await io.getFromMetamap({});
+    const db = await Metamap.find({}).select({ _id: 0, __v: 0 });
     const metamapJSON = db.map((elem) => (elem.hash));
     rev.missedJSON = metamapJSON;
 

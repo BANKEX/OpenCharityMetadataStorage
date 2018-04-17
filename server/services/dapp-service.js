@@ -79,11 +79,31 @@ const init = async () => {
       return null;
     }));
   };
+  const deleteInactiveAddresses = async () => {
+    const inactiveAddresses = app.state.previous.filter((el) => (!app.state.actual.includes(el)));
+    await Promise.all(inactiveAddresses.map(async (address) => {
+      addBatchToDelLine(address);
+      const metamap = await Metamap.findOne({ address });
+      if (metamap) {
+        const examplesHash = await Metamap.find({ hash: metamap.hash});
+        if (examplesHash.length == 1) {
+          process.stdout.write('X');
+          addBatchToDelLine(metamap.hash);
+        } else {
+          process.stdout.write('y');
+        }
+      } else {
+        process.stdout.write('x');
+      }
+      return null;
+    }));
+    await Metamap.deleteMany({ address: inactiveAddresses });
+  };
   const subscribe = (_ORGAddressList) => {
     const charityEventAdded = async (event) => {
       console.log(new Date().toLocaleString() + ' - CE added/edited');
       const objBC = await getFullObject(null, event, 'CE', null);
-      app.state.previous.push(objBC.address);
+      app.state.actual.push(objBC.address);
       addBatchToLine(new DappObject('1', objBC));
       // console.log(objBC);
       updateMeta(objBC.address, objBC.metaStorageHash);
@@ -91,10 +111,10 @@ const init = async () => {
     const incomingDonationAdded = async (event) => {
       console.log(new Date().toLocaleString() + ' - ID added/edited');
       const objBC = await getFullObject(null, event, 'ID', null);
-      app.state.previous.push(objBC.address);
+      app.state.actual.push(objBC.address);
       addBatchToLine(new DappObject('2', objBC));
       // console.log(objBC);
-      updateMeta(objBC.address, objBC.metaStorageHash);
+      if (objBC.metaStorageHash) updateMeta(objBC.address, objBC.metaStorageHash);
     };
     const updateMeta = async (ownerAddress, metaStorageHash) => {
       if (metaStorageHash) {
@@ -130,21 +150,6 @@ const init = async () => {
       // ORGcontract.events.IncomingDonationEdited({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
     });
   };
-  const deleteInactiveAddresses = async () => {
-    const inactiveAddresses = app.state.previous.filter((el) => (!app.state.actual.includes(el)));
-    await Promise.all(inactiveAddresses.map(async (address) => {
-      addBatchToDelLine(address);
-      const metamap = await Metamap.findOne({ address });
-      if (metamap) {
-        process.stdout.write('+');
-        addBatchToDelLine(metamap.hash);
-      } else {
-        process.stdout.write('-');
-      }
-      return null;
-    }));
-    await Metamap.deleteMany({ address: inactiveAddresses });
-  };
 
   app.state.previous = app.state.actual;
   app.state.actual = [];
@@ -152,14 +157,27 @@ const init = async () => {
   app.state.actualORG = app.state.initList.list;
   app.state.token = new app.state.web3.eth.Contract(app.state.initList.abis['OpenCharityToken'], DAPP.token);
   app.state.minBlock = await getMinBlock();
+
+  // refresh actuals
+  /*
+  await Promise.all(app.state.initList.list.map(async (ORGaddress) => {
+    const ce = await getAddresses(ORGaddress, 'CE');
+    const id = await getAddresses(ORGaddress, 'ID');
+    app.state.actual = [].concat(ce, id);
+    return null;
+  }));
+  */
+
   // Collections create/update
   await Promise.all(app.state.initList.list.map(async (ORGaddress) => {
     await refreshCollections(ORGaddress, 'CE');
     await refreshCollections(ORGaddress, 'ID');
     return null;
   }));
+
   // deleting not actual addresses
   await deleteInactiveAddresses();
+
   // subscribe for added orgs
   const newORG = app.state.actualORG.filter(el => (!app.state.previousORG.includes(el)));
   subscribe(newORG);
@@ -273,6 +291,25 @@ const getFullObject = async (address, event, type, ORGaddress) => {
   }
 
   return _this;
+};
+const getAddresses = async (ORGaddress, type) => {
+  const options = {
+    'CE': {
+      countFunc: 'charityEventCount',
+      indexFunc: 'charityEventIndex',
+    },
+    'ID': {
+      countFunc: 'incomingDonationCount',
+      indexFunc: 'incomingDonationIndex',
+    },
+  };
+  const ORGcontract = new app.state.web3.eth.Contract(app.state.initList.abis['Organization'], ORGaddress);
+  const count = await ORGcontract.methods[options[type].countFunc]().call();
+  const res = [];
+  for (let i=0; i<count; i++) {
+    res[i] = await ORGcontract.methods[options[type].indexFunc](i).call();
+  }
+  return res;
 };
 
 export default {

@@ -2,7 +2,7 @@ import AppError from '../../../utils/AppErrors.js';
 import { init, search, addBatchToLine, close, flush } from '../services/search-service';
 import { Metamap } from '../index';
 import fs from 'fs';
-import io from '../io';
+import { deleteStorage } from '../../meta/services/fileService';
 import dappAll from '../../../inits/stack/03-dappAll';
 
 export default {
@@ -63,7 +63,7 @@ export default {
       ctx.request.header['content-type']!='application/x-www-form-urlencoded') throw new AppError(400, 10);
     if (ctx.request.body.password!='drop') throw new AppError(401, 100);
     await close();
-    io.deleteMetadataStorage();
+    deleteStorage();
     await init();
     ctx.body = 'Ok';
   },
