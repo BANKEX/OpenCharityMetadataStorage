@@ -5,6 +5,8 @@ import { checkFile } from '../modules/meta/services/fileService';
 import app from 'app';
 import fs from 'fs';
 
+const subscribtions = {};
+
 function DappObject(type, objExt) {
   const extractTags = (mask) => {
     return mask;
@@ -86,11 +88,12 @@ const init = async () => {
       const metamap = await Metamap.findOne({ address });
       if (metamap) {
         const examplesHash = await Metamap.find({ hash: metamap.hash});
-        if (examplesHash.length == 1) {
+        const saveIt = examplesHash.find((el) => app.state.actual.includes(el.address)) || false;
+        if (!saveIt) {
           process.stdout.write('X');
           addBatchToDelLine(metamap.hash);
         } else {
-          process.stdout.write('y');
+          process.stdout.write('S');
         }
       } else {
         process.stdout.write('x');
@@ -142,12 +145,22 @@ const init = async () => {
     };
 
     _ORGAddressList.forEach((ORGaddress) => {
+      subscribtions[ORGaddress] = [];
       const ORGcontract = new app.state.web3.eth.Contract(app.state.initList.abis['Organization'], ORGaddress);
-      ORGcontract.events.CharityEventAdded({ fromBlock: 'latest' }).on('data', charityEventAdded);
-      ORGcontract.events.IncomingDonationAdded({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
-      ORGcontract.events.MetaStorageHashUpdated({ fromBlock: 'latest' }).on('data', metaStorageHashUpdated);
-      ORGcontract.events.CharityEventEdited({ fromBlock: 'latest' }).on('data', charityEventAdded);
+      subscribtions[ORGaddress][0] = ORGcontract.events.CharityEventAdded({ fromBlock: 'latest' }).on('data', charityEventAdded);
+      subscribtions[ORGaddress][1] = ORGcontract.events.IncomingDonationAdded({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
+      subscribtions[ORGaddress][2] = ORGcontract.events.MetaStorageHashUpdated({ fromBlock: 'latest' }).on('data', metaStorageHashUpdated);
+      subscribtions[ORGaddress][3] = ORGcontract.events.CharityEventEdited({ fromBlock: 'latest' }).on('data', charityEventAdded);
       // ORGcontract.events.IncomingDonationEdited({ fromBlock: 'latest' }).on('data', incomingDonationAdded);
+    });
+  };
+  const unsubscribe = (_ORGAddressList) => {
+    _ORGAddressList.forEach((ORGaddress) => {
+      subscribtions[ORGaddress].forEach((subs) => {
+        subs.unsubscribe((err, res) => {
+          process.stdout.write((res) ? 'U' : 'E');
+        });
+      });
     });
   };
 
@@ -157,16 +170,6 @@ const init = async () => {
   app.state.actualORG = app.state.initList.list;
   app.state.token = new app.state.web3.eth.Contract(app.state.initList.abis['OpenCharityToken'], DAPP.token);
   app.state.minBlock = await getMinBlock();
-
-  // refresh actuals
-  /*
-  await Promise.all(app.state.initList.list.map(async (ORGaddress) => {
-    const ce = await getAddresses(ORGaddress, 'CE');
-    const id = await getAddresses(ORGaddress, 'ID');
-    app.state.actual = [].concat(ce, id);
-    return null;
-  }));
-  */
 
   // Collections create/update
   await Promise.all(app.state.initList.list.map(async (ORGaddress) => {
@@ -182,7 +185,8 @@ const init = async () => {
   const newORG = app.state.actualORG.filter(el => (!app.state.previousORG.includes(el)));
   subscribe(newORG);
   // unsubscribe not actual Orgs
-  // need to develop it
+  const delORG = app.state.previousORG.filter(el => (!app.state.actualORG.includes(el)));
+  unsubscribe(delORG);
 };
 
 // main object forming
