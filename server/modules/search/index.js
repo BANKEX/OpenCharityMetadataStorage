@@ -1,6 +1,7 @@
 import Router from 'koa-router';
 import search from './controllers/search-controller.js';
 import { Metamap } from './models';
+import { addBatchToDelLine } from './services/search-service';
 
 const router = new Router({ prefix: '/search' });
 
@@ -14,4 +15,5 @@ export default router.routes();
 
 export {
   Metamap,
+  addBatchToDelLine,
 };

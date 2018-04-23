@@ -1,0 +1,427 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: OpenCharity Metastorage & Search Mashine API
+  description: OpenCharityMetastorage & Search Mashine API.  You can find out more at [https://github.com/BANKEX/OpenCharityMetadataStorage](https://github.com/BANKEX/OpenCharityMetadataStorage)
+tags:
+  - name: Meta
+    description: Metastorage requests
+  - name: Search
+    description: Search requests
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 406
+        message:
+          type: string
+          example: 'Wrong request'
+    attache:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'file.jpeg'
+        type:
+          type: string
+          example: 'image/jpeg'
+        size:
+          type: integer
+          example: 123456
+        storageHash:
+          type: string
+          example: 'QmNQniax478E5KfVJoXAwC9rKavmSoD9VbxbVmTcXEuH21'
+    metaJSON:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          example: 1
+        searchDescription:
+          type: string
+          example: 'Some search data'
+        data:
+          type: object
+          properties:
+            title:
+              type: string
+              example: 'Title'
+            description:
+              type: string
+              example: 'Some description'
+            image:
+              $ref: '#/components/schemas/attache'
+            attache:
+              type: array
+              items:
+                $ref: '#/components/schemas/attache'
+    revision:
+      type: object
+      properties:
+        missedBinary:
+          type: array
+          description: 'Array of missed binary file multi-hash addresses'
+          items:
+            type: string
+            example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+        missedJSON:
+          type: array
+          description: 'Array of missed JSON file multi-hash addresses'
+          items:
+            type: string
+            example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+        unusedBinary:
+          type: array
+          description: 'Array of unused binary file multihash addresses'
+          items:
+            type: string
+            example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+        unusedJSON:
+          type: array
+          description: 'Array of unused JSON file multi-hash addresses'
+          items:
+            type: string
+            example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+        storeJSON:
+          type: object
+          description: 'Stored JSONs and multi-hashes attached them'
+        statistic:
+          type: object
+          description: 'Revision statistic data'
+          properties:
+            allBinary:
+              type: integer
+            allJSON:
+              type: integer
+            metamapJSONs:
+              type: integer
+            missedBinaries:
+              type: integer
+            missedJSONs:
+              type: integer
+            unusedBinaries:
+              type: integer
+            unusedJSONs:
+              type: integer
+            wrongMultiHash:
+              type: integer
+        wrongMultiHash:
+          type: array
+          description: 'Array of file multi-hash addresses, which multi-hash content not equal filename'
+          items:
+            type: string
+            example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+    search:
+      type: object
+      properties:
+        pageSize:
+          type: integer
+          example: 10
+        offset:
+          type: integer
+        query:
+          type: object
+          properties:
+            AND:
+              type: object
+              properties:
+                '*':
+                  type: array
+                  items:
+                    type: string
+                    example: '*'
+                type:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - '0'
+                    - '1'
+                    - '2'
+                    - '3'
+                    example: '1'
+paths:
+  '/api/meta/getData/{hash}':
+    get:
+      tags:
+        - Meta
+      summary: Download file/files from metastorage
+      parameters:
+        - name: hash
+          in: path
+          description: 'One or more multi-hashes semicolon splited'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/metaJSON'
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/meta/postData':
+    post:
+      tags:
+        - Meta
+      summary: 'Upload data to metastorage'
+      description: |
+        All data must be specified by Blob and send to metaserver by `sendBlobsToServer` function
+        ```
+        const sendBlobsToServer = (blobs) => {
+          return new Promise((resolve, reject) => {
+            let counter=0;
+            const hashes = [];
+            for (let i=0, len=blobs.length; i<len; i++) {
+              const blob = blobs[i];
+              const reader = new FileReader();
+              const xhr = new XMLHttpRequest();
+              xhr.open('post', '/api/meta/postData');
+              xhr.setRequestHeader('X-Content-Type-Options', 'nosniff');
+              reader.readAsArrayBuffer(blob);
+              reader.onload = function (event) {
+                xhr.send(event.target.result);
+                xhr.onload = (event) => {
+                  if (event.target.status==200) {
+                    hashes[i] = event.target.responseText;
+                    counter++;
+                    if (counter==len) resolve(hashes);
+                  } else {reject(event.target.responseText)}
+                };
+              }
+            }
+          });
+        };
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metaJSON'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/meta/delData':
+    post:
+      tags:
+        - Meta
+      summary: 'Delete data from metastorage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hash:
+                  type: string
+                  example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/meta/updateData':
+    post:
+      tags:
+        - Meta
+      summary: 'Update data on metastorage. Deprecated!'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldHash:
+                  type: string
+                  example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCa4ARJGFPB9VDFXBgiRx'
+                newHash:
+                  type: string
+                  example: 'QmaFuHMo3DcpZJ8N6vVcBJoe2wCafHBHEDfff3423rsfj4'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/meta/revision/{type}':
+    get:
+      tags:
+        - Meta
+      summary: Get revision JSON
+      parameters:
+        - name: type
+          in: path
+          description: 'Type of revision method'
+          required: true
+          schema:
+            type: string
+            enum:
+              - 'lite'
+              - 'long'
+              - 'deep'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/revision'
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/meta/recover':
+    post:
+      tags:
+        - Meta
+      summary: 'Recover metastorage by type. Delete wrongMultiHash data or unused JSONs or unused binary files.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                  - 'wrongMultiHash'
+                  - 'unusedJSON'
+                  - 'unusedBinary'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/search/search':
+    post:
+      tags:
+        - Search
+      summary: 'Search addresses by request'
+      description: Search request based on SearchIndex Framework [https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md](https://github.com/fergiemcdowall/search-index/blob/master/docs/search.md)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/search'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            application/json:
+              type: array
+              items:
+                type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/search/reindex':
+    post:
+      tags:
+        - Search
+      summary: 'Reindex metastorage: its flushed search index and init syncronize with blockchain.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/search/drop':
+    post:
+      tags:
+        - Search
+      summary: 'Delete metastorage and search-index.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            text/plain:
+              type: string
+        default:
+          description: 'Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

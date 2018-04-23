@@ -4,7 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import { fileSettings, DIRS, INTERVALS } from 'configuration';
 import AppError from '../../../utils/AppErrors.js';
-import { Metamap } from '../../search';
+import { Metamap, addBatchToDelLine } from '../../search';
 import path from 'path';
 
 import { 
@@ -168,7 +168,7 @@ const writeFile = (stream, tempPathFile) => {
 
 const deleteFile = (hash) => {
   const pathFile = checkFile(hash);
-  if (!pathFile) throw new AppError(409, 600);
+  if (!pathFile) throw new AppError(406, 404);
   const stat = fs.statSync(pathFile);
   if (stat.ctime < Date.now() - INTERVALS.fs.deleteFileAfter) {
     fs.unlinkSync(pathFile);
@@ -184,11 +184,12 @@ const updateMetadata = (oldHash, newHash) => {
     try {
       const oldData = JSON.parse(oldFile);
       const newData = JSON.parse(newFile);
-      const oldAttachments = getAttachHashes(oldData);
-      const newAttachments = getAttachHashes(newData);
-      const noUseAttachments = oldAttachments.filter((hash) => (!newAttachments.includes(hash)));
+      // const oldAttachments = getAttachHashes(oldData);
+      // const newAttachments = getAttachHashes(newData);
+      // const noUseAttachments = oldAttachments.filter((hash) => (!newAttachments.includes(hash)));
       // noUseAttachments.forEach(deleteFile);
-      deleteFile(oldHash);
+      addBatchToDelLine(oldHash);
+      // deleteFile(oldHash);
     } catch (e) {
       throw e;
     }

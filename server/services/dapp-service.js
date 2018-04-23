@@ -59,6 +59,7 @@ const init = async () => {
       if (objBC.metaStorageHash) {
         const metamap = await Metamap.findOne({address: objBC.address});
         if (metamap) {
+          addBatchToDelLine(metamap.hash);
           await Metamap.update({address: objBC.address}, new MetamapObject(objBC));
         } else {
           await Metamap.create(new MetamapObject(objBC));

@@ -6,6 +6,7 @@ const errorMessages = {
   103: 'E-mail already in use',
   104: 'Incorrect e-mail',
   400: 'DB validation error',
+  404: 'Not found',
   600: 'Wrong request',
   601: 'Required param missed in request',
   602: 'Incoming data too large',
